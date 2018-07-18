@@ -7,26 +7,23 @@ import inspect
 class FunctionUI(QtWidgets.QWidget):
 
     @staticmethod
-    def process_signature(sig):
-        out = {}
-        for k, v in sig.parameters.items():
-            npdt = np.dtype(v.annotation).kind
-            if npdt == 'i':
-                w = MISpin(name=k)
-            elif npdt == 'f':
-                w = MFSpin(name=k)
-                w.setDecimals(3)
-            elif npdt == 'U':
-                w = MText(name=k)
-            else:
-                w = QtWidgets.QLabel(npdt)
-            try:
-                w.setKeyboardTracking(False)
-            except AttributeError:
-                pass
-
-            out[k] = w
-        return out
+    def process_parameter(param):
+        k = param.name
+        npdt = np.dtype(param.annotation).kind
+        if npdt == 'i':
+            w = MISpin(name=k)
+        elif npdt == 'f':
+            w = MFSpin(name=k)
+            w.setDecimals(3)
+        elif npdt == 'U':
+            w = MText(name=k)
+        else:
+            w = QtWidgets.QLabel(npdt)
+        try:
+            w.setKeyboardTracking(False)
+        except AttributeError:
+            pass
+        return w
 
     def __init__(self, func):
         super().__init__()
@@ -36,8 +33,8 @@ class FunctionUI(QtWidgets.QWidget):
 
         self._params = {}
 
-        for k, w in self.process_signature(
-                inspect.signature(func)).items():
+        for k, p in inspect.signature(func).parameters.items():
+            w = self.process_parameter(p)
             hlayout = QtWidgets.QHBoxLayout()
             layout.addLayout(hlayout)
 
