@@ -53,3 +53,12 @@ class FunctionUI(QtWidgets.QWidget):
 
     def run_me(self):
         return self._func(**self.get_parameters())
+
+
+class RunnableFunctionUI(FunctionUI):
+    def __init__(self, func):
+        super().__init__(func)
+
+        self.go_button = QtWidgets.QPushButton('RUN')
+        self.layout().addWidget(self.go_button)
+        self.go_button.clicked.connect(self.run_me)
