@@ -1,5 +1,5 @@
 from qtpy import QtWidgets
-from mily.widgets import MText, MISpin, MFSpin
+from mily.widgets import MText, MISpin, MFSpin, label_layout
 import numpy as np
 import inspect
 
@@ -35,16 +35,8 @@ class FunctionUI(QtWidgets.QWidget):
 
         for k, p in inspect.signature(func).parameters.items():
             w = self.process_parameter(p)
-            hlayout = QtWidgets.QHBoxLayout()
-            layout.addLayout(hlayout)
-
-            label = QtWidgets.QLabel(k)
-            hlayout.addWidget(label)
-
-            hlayout.addStretch()
-
             self._params[k] = w
-            hlayout.addWidget(w)
+            layout.addLayout(label_layout(k, w))
 
     def get_parameters(self):
         return {k: v
