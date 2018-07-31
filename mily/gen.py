@@ -1,7 +1,9 @@
 from qtpy import QtWidgets
-from mily.widgets import MText, MISpin, MFSpin, label_layout
+from mily.widgets import (MText, MISpin, MFSpin, MDateTime,
+                          label_layout,)
 import numpy as np
 import inspect
+import datetime
 
 
 class FunctionUI(QtWidgets.QWidget):
@@ -10,19 +12,19 @@ class FunctionUI(QtWidgets.QWidget):
     def process_parameter(param):
         k = param.name
         npdt = np.dtype(param.annotation).kind
-        if npdt == 'i':
-            w = MISpin(name=k)
-        elif npdt == 'f':
-            w = MFSpin(name=k)
-            w.setDecimals(3)
-        elif npdt == 'U':
-            w = MText(name=k)
-        else:
-            w = QtWidgets.QLabel(npdt)
+        np_map = {'i': MISpin,
+                  'f': MFSpin,
+                  'U': MText}
+
+        type_map = {datetime.datetime: MDateTime}
         try:
-            w.setKeyboardTracking(False)
-        except AttributeError:
-            pass
+            w = np_map[npdt](name=k)
+        except KeyError:
+            try:
+                w = type_map[param.annotation](name=k)
+            except KeyError:
+                w = QtWidgets.QLabel(str(param.annotation))
+
         return w
 
     def __init__(self, func):
