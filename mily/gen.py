@@ -38,12 +38,21 @@ class FunctionUI(QtWidgets.QWidget):
         for k, p in inspect.signature(func).parameters.items():
             w = self.process_parameter(p)
             self._params[k] = w
-            layout.addLayout(label_layout(k, w))
+            layout.addLayout(label_layout(
+                k,
+                (p.default is p.empty),
+                w))
+            if p.default is not p.empty:
+                try:
+                    w.set_default(p.default)
+                except AttributeError:
+                    pass
 
     def get_parameters(self):
         return {k: v
                 for w in self._params.values()
-                for k, v in w.get_parameters().items()}
+                for k, v in w.get_parameters().items()
+                if w.isEnabled()}
 
     def run_me(self):
         return self._func(**self.get_parameters())
