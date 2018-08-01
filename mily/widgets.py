@@ -41,6 +41,7 @@ class MISpin(QtWidgets.QSpinBox):
         super().__init__(**kwargs)
         self._name = name
         self.setKeyboardTracking(False)
+        self.setRange(-2**32, 2**32)
 
     def get_parameters(self):
         return {self._name: self.value()}
@@ -56,6 +57,7 @@ class MFSpin(QtWidgets.QDoubleSpinBox):
         self._name = name
         self.setDecimals(3)
         self.setKeyboardTracking(False)
+        self.setRange(-2**32, 2**32)
 
     def get_parameters(self):
         return {self._name: self.value()}
@@ -78,3 +80,22 @@ class MDateTime(QtWidgets.QDateTimeEdit):
     def set_default(self, v):
         if v is not None:
             self.setDateTime(v)
+
+
+class MoverRanger(QtWidgets.QWidget):
+    def __init__(self, mover, steps=10, **kwargs):
+        super().__init__(**kwargs)
+        self.name = mover.name
+        hlayout = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel(self.name)
+        lower = self.lower = MFSpin('start')
+        upper = self.upper = MFSpin('stop')
+        stps = self.steps = MISpin('steps')
+        stps.setValue(steps)
+
+        hlayout.addWidget(label)
+        hlayout.addStretch()
+        hlayout.addWidget(lower)
+        hlayout.addWidget(upper)
+        hlayout.addWidget(stps)
+        self.setLayout(hlayout)
