@@ -1,6 +1,6 @@
 from qtpy import QtWidgets
 from mily.widgets import (MText, MISpin, MFSpin, MDateTime,
-                          label_layout,)
+                          label_layout, merge_parameters,)
 import numpy as np
 import inspect
 import datetime
@@ -49,10 +49,7 @@ class FunctionUI(QtWidgets.QWidget):
                     pass
 
     def get_parameters(self):
-        return {k: v
-                for w in self._params.values()
-                for k, v in w.get_parameters().items()
-                if w.isEnabled()}
+        return merge_parameters(self._params.values())
 
     def run_me(self):
         return self._func(**self.get_parameters())
