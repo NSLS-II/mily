@@ -62,3 +62,7 @@ class RunnableFunctionUI(FunctionUI):
         self.go_button = QtWidgets.QPushButton('RUN')
         self.layout().addWidget(self.go_button)
         self.go_button.clicked.connect(self.run_me)
+
+
+class REQueue(QtWidgets.QWidget):
+    def __init__(self):
