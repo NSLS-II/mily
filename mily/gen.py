@@ -65,4 +65,24 @@ class RunnableFunctionUI(FunctionUI):
 
 
 class REQueue(QtWidgets.QWidget):
-    def __init__(self):
+
+    def __init__(self, RE, queue, motors, detectors):
+        # random state it holds
+        self.RE = RE
+        self.queue = queue
+        self.motors = {m.name: m for m in motors}
+
+        # layout :(
+
+        main_layout = QtWidgets.QHBoxLayout()
+        self.setLayout(main_layout)
+        left_pannel = QtWidgets.QVBoxLayout()
+        right_pannel = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(left_pannel)
+        main_layout.addLayout(right_pannel)
+
+        self.detectors_widget = DetectorSelector(detectors)
+        right_pannel.addWidget(self.detectors_widget)
+
+    def add_to_queue(self, func, *args, **kwargs):
+        self.queue.put(func(self.checked_detectors, *args, **kwargs))

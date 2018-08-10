@@ -1,4 +1,5 @@
 from qtpy import QtWidgets
+from ophyd import Device
 import datetime
 
 
@@ -144,6 +145,51 @@ class MoverRanger(QtWidgets.QWidget):
         return merge_parameters([self.lower, self.upper, self.steps])
 
 
+class DetectorCheck(QtWidgets.QCheckBox):
+    def __init__(self, detector, **kwargs):
+        self.det = detector
+        super().__init__(detector.name, **kwargs)
+
+
+class DetectorSelector(QtWidgets.QGroupBox):
+    def __init__(self, title='Detectors', *, detectors, **kwargs):
+        super().__init__(title, **kwargs)
+        self.button_group = QtWidgets.QButtonGroup()
+        vlayout = QtWidgets.QVBoxLayout()
+        self.setLayout(vlayout)
+        for d in detectors:
+            button = DetectorCheck(d)
+            self.button_group.addButton(button)
+            vlayout.addWidget(button)
+
+    @property
+    def active_detectors(self):
+        return [b.det
+                for b in self.button_group.buttons()
+                if b.isChecked()]
+
+
 class BoundingBox(QtWidgets.QWidget):
     def __init__(self, name, **kwargs):
         pass
+
+
+def make_row(sig):
+    child = QtWidgets.QTreeWidgetItem([sig.name,
+                                       str(sig.kind)])
+
+    return child
+
+
+def fill_item(item, value):
+    item.setExpanded(True)
+    child = make_row(value)
+    item.addChild(child)
+    if isinstance(value, Device):
+        for k in value.component_names:
+            fill_item(child, getattr(value, k))
+
+
+def fill_widget(widget, value):
+    widget.clear()
+    fill_item(widget.invisibleRootItem(), value)
