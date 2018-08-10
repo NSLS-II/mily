@@ -174,22 +174,23 @@ class BoundingBox(QtWidgets.QWidget):
         pass
 
 
-def make_row(sig):
-    child = QtWidgets.QTreeWidgetItem([sig.name,
-                                       str(sig.kind)])
+class OphydKinds(QtWidgets.QTreeWidget):
+    def __init__(self, *args, obj, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    return child
+        self.set_object(obj)
 
+    def set_object(self, obj):
+        self._obj = obj
 
-def fill_item(item, value):
-    item.setExpanded(True)
-    child = make_row(value)
-    item.addChild(child)
-    if isinstance(value, Device):
-        for k in value.component_names:
-            fill_item(child, getattr(value, k))
+        def fill_item(item, value):
+            item.setExpanded(True)
+            child = QtWidgets.QTreeWidgetItem([value.name,
+                                               str(value.kind)])
+            item.addChild(child)
+            if isinstance(value, Device):
+                for k in value.component_names:
+                    fill_item(child, getattr(value, k))
 
-
-def fill_widget(widget, value):
-    widget.clear()
-    fill_item(widget.invisibleRootItem(), value)
+        self.clear()
+        fill_item(self.invisibleRootItem(), obj)
