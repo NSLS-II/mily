@@ -144,6 +144,12 @@ class MoverRanger(QtWidgets.QWidget):
     def get_parameters(self):
         return merge_parameters([self.lower, self.upper, self.steps])
 
+    def get_args(self):
+        return (self.mover,
+                self.lower.get_parameters()['start'],
+                self.upper.get_parameters()['stop'],
+                self.steps.get_parameters()['steps'])
+
 
 class DetectorCheck(QtWidgets.QCheckBox):
     def __init__(self, detector, **kwargs):
@@ -155,6 +161,7 @@ class DetectorSelector(QtWidgets.QGroupBox):
     def __init__(self, title='Detectors', *, detectors, **kwargs):
         super().__init__(title, **kwargs)
         self.button_group = QtWidgets.QButtonGroup()
+        self.button_group.setExclusive(False)
         vlayout = QtWidgets.QVBoxLayout()
         self.setLayout(vlayout)
         for d in detectors:
