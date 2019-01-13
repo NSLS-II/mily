@@ -11,6 +11,8 @@ def _get_asyncio_queue(loop):
         NOTE: This is bound to a single event loop for compatibility with
         synchronous requests.
         '''
+        def __init__(self, *, loop=loop, **kwargs):
+            super().__init__(loop=loop, **kwargs)
 
         async def async_get(self):
             return await super().get()
@@ -30,7 +32,7 @@ def _get_asyncio_queue(loop):
     return AsyncioQueue
 
 
-def spawn_RE(**kwargs):
+def spawn_RE(*, loop=None, **kwargs):
     RE = RunEngine(context_managers=[], **kwargs)
     queue = _get_asyncio_queue(RE.loop)()
 
