@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>RE as a Web Page</title>
+
+  </head>
+  <body>
+
+<form action="/submit" method="post" accept-charset="utf-8">
+<select name="plan_key">
+  {% for key, item in plan_map.items() %}
+    <option value={{ key }}>{{ key }}</option>
+  {% endfor %}
+</select>
+  <br>
+  <input type="submit" value="Go!">
+</form>
+
+  </body>
+</html>
