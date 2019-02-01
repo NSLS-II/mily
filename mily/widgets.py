@@ -201,3 +201,107 @@ class OphydKinds(QtWidgets.QTreeWidget):
 
         self.clear()
         fill_item(self.invisibleRootItem(), obj)
+
+
+class MotorSelector(QtWidgets.QWidget):
+    """Widget to select one of many motors
+
+    This generates a MoverRanger for each motor passed in and
+    a drop-down to select between them.
+
+    Parameters
+    ----------
+    motors : List[Settable]
+        Makes use of .name, .limits (optional), and .egu (optional)
+    """
+    def __init__(self, motors, **kwargs):
+        super().__init__(**kwargs)
+        self.motors = []
+        self.cb = combobox = QtWidgets.QComboBox()
+        hlayout = QtWidgets.QHBoxLayout()
+        motor_layout = QtWidgets.QHBoxLayout()
+
+        for motor in motors:
+            mrw = MoverRanger(motor.name, motor)
+            mrw.label.setVisible(False)
+            self.motors.append(mrw)
+            motor_layout.addWidget(mrw)
+            # the label is redundant with the drop down
+            mrw.setVisible(False)
+            combobox.addItem(motor.name)
+
+        combobox.currentIndexChanged[int].connect(
+            self.set_active_motor)
+
+        hlayout.addWidget(combobox)
+        hlayout.addLayout(motor_layout)
+
+        self.setLayout(hlayout)
+        self.set_active_motor(0)
+
+    def set_active_motor(self, n):
+        try:
+            self.active_motor = self.motors[n]
+            for m in self.motors:
+                if m is not self.active_motor:
+                    m.setVisible(False)
+            self.active_motor.setVisible(True)
+
+        except IndexError:
+            pass
+
+class TabScanSelector(QtWidgets.QWidget):
+    def __init__(self, *scan_widgets, **kwargs):
+        super().__init__(**kwargs)
+        self._scans = scan_widgets
+        self.tab_widget = QtWidgets.QTabWidget()
+        for scan in scan_widgets:
+            self.tab_widget.addTab(scan, scan.name)
+
+        vlayout = QtWidgets.QVBoxLayout()
+        vlayout.addWidget(self.tab_widget)
+
+        self.setLayout(vlayout)
+
+
+    def get_plan(self):
+        return self.tab_widget.currentWidget().get_plan()
+
+class Scan1D(QtWidgets.QWidget):
+    def __init__(self, name, plan, motors_widget, detectors_widget, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.plan_function = plan
+        vlayout = QtWidgets.QVBoxLayout()
+
+        # set up the motor selector
+        self.motors_widget = motors_widget
+        vlayout.addWidget(motors_widget)
+
+        # set up the detector selector
+        self.dets = detectors_widget
+        vlayout.addWidget(self.dets)
+
+        self.setLayout(vlayout)
+
+    def get_plan(self):
+        return self.plan_function(self.dets.active_detectors,
+                                  *self.motors_widget.active_motor.get_args())
+
+
+class ControlGui(QtWidgets.QWidget):
+    def __init__(self, queue, *scan_widgets, **kwargs):
+        super().__init__(**kwargs)
+        self.queue = queue
+        vlayout = QtWidgets.QVBoxLayout()
+        self.tabs = TabScanSelector(*scan_widgets)
+        vlayout.addWidget(self.tabs)
+
+        self.go_button = QtWidgets.QPushButton('SCAN!')
+        vlayout.addWidget(self.go_button)
+
+        def runner():
+            self.queue.put(self.tabs.get_plan())
+
+        self.go_button.clicked.connect(runner)
+        self.setLayout(vlayout)
