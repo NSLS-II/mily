@@ -25,11 +25,21 @@ def label_layout(name, required, widget):
 
 
 def vstacked_label(name, widget):
+    "Add a label above a widget"
     vlayout = QtWidgets.QVBoxLayout()
     label = QtWidgets.QLabel(name)
     vlayout.addWidget(label)
     vlayout.addWidget(widget)
     return vlayout
+
+
+def hstacked_label(name, widget):
+    "Add a label to the left of widget"
+    layout = QtWidgets.QHBoxLayout()
+    label = QtWidgets.QLabel(name)
+    layout.addWidget(label)
+    layout.addWidget(widget)
+    return layout
 
 
 def merge_parameters(widget_iter):
