@@ -3,14 +3,22 @@ from ophyd import Device
 import datetime
 
 
-def label_layout(name, required, widget):
+def label_layout(name, required, widget, label_pos='h'):
     hlayout = QtWidgets.QHBoxLayout()
+    if label_pos == 'h':
+        llayout = QtWidgets.QHBoxLayout()
+    elif label_pos == 'v':
+        llayout = QtWidgets.QVBoxLayout()
+    else:
+        raise ValueError(f'label_pos: {label_pos} is invalid.  ' +
+                         'must be one of {"h", "v"}')
     label = QtWidgets.QLabel(name)
     cb = QtWidgets.QCheckBox()
     hlayout.addWidget(cb)
-    hlayout.addWidget(label)
+    llayout.addWidget(label)
+    llayout.addWidget(widget)
+    hlayout.addLayout(llayout)
     hlayout.addStretch()
-    hlayout.addWidget(widget)
 
     if required:
         cb.setChecked(True)
