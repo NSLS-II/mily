@@ -281,11 +281,19 @@ class TabScanSelector(QtWidgets.QWidget):
 
         self.setLayout(vlayout)
 
-
     def get_plan(self):
         return self.tab_widget.currentWidget().get_plan()
 
+
 class Scan1D(QtWidgets.QWidget):
+    """Widget for 1D scans.
+
+    The wrapped plan must have the signature ::
+
+       def plan(dets : List[OphydObj], motor : Settable,
+                start : float, stop : float, step : int, *
+                md=None : Dict[str, Any]) -> Any:
+    """
     def __init__(self, name, plan, motors_widget, detectors_widget, **kwargs):
         super().__init__(**kwargs)
         self.name = name
