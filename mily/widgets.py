@@ -2,6 +2,8 @@ from qtpy import QtWidgets
 from ophyd import Device
 import datetime
 
+from  pyqtgraph.parametertree import parameterTypes as pTypes, ParameterTree
+
 
 def label_layout(name, required, widget, label_pos='h'):
     hlayout = QtWidgets.QHBoxLayout()
@@ -294,10 +296,12 @@ class Scan1D(QtWidgets.QWidget):
                 start : float, stop : float, step : int, *
                 md=None : Dict[str, Any]) -> Any:
     """
-    def __init__(self, name, plan, motors_widget, detectors_widget, **kwargs):
+    def __init__(self, name, plan, motors_widget, detectors_widget,
+                 md_parameters=None, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.plan_function = plan
+        self.md_parameters = md_parameters
         vlayout = QtWidgets.QVBoxLayout()
 
         # set up the motor selector
@@ -311,23 +315,22 @@ class Scan1D(QtWidgets.QWidget):
         self.setLayout(vlayout)
 
     def get_plan(self):
+        md = (self.md_parameters.collect_metadata()
+              if self.md_parameters is not None
+              else None)
         return self.plan_function(self.dets.active_detectors,
-                                  *self.motors_widget.active_motor.get_args())
+                                  *self.motors_widget.active_motor.get_args(),
+                                  md=md)
 
 
 class Count(QtWidgets.QWidget):
-    """Widget for 1D scans.
-
-    The wrapped plan must have the signature ::
-
-       def plan(dets : List[OphydObj],
-                num : int, float=None : Optional[float]*
-                md=None : Dict[str, Any]) -> Any:
-    """
-    def __init__(self, name, plan, detectors_widget, **kwargs):
+    def __init__(self, name, plan, detectors_widget, md_parameters=None,
+                 **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.plan_function = plan
+        self.md_parameters = md_parameters
+
         vlayout = QtWidgets.QVBoxLayout()
         hlayout = QtWidgets.QHBoxLayout()
         # num spinner
@@ -352,25 +355,62 @@ class Count(QtWidgets.QWidget):
     def get_plan(self):
         d = self.delay_spin.value() if self.delay_spin.isEnabled() else None
         num = self.num_spin.value()
+        md = (self.md_parameters.collect_metadata()
+              if self.md_parameters is not None
+              else None)
         return self.plan_function(self.dets.active_detectors,
                                   num=num,
-                                  delay=d)
+                                  delay=d,
+                                  md=md)
 
+
+# Modified from pyqtgraph examples
+class MetaDataEntry(pTypes.GroupParameter):
+    def __init__(self, **opts):
+        opts['type'] = 'group'
+        opts['addText'] = "Add"
+        opts['addList'] = ['str', 'float', 'int']
+        pTypes.GroupParameter.__init__(self, **opts)
+
+    def addNew(self, typ):
+        val = {
+            'str': '',
+            'float': 0.0,
+            'int': 0
+        }[typ]
+        self.addChild(dict(name=f"MD ({len(self.childs)+1})",
+                           type=typ, value=val,
+                           removable=True,
+                           renamable=True))
+
+    def collect_metadata(self):
+        return {k: v
+                for k, (v, _) in self.getValues().items()}
 
 
 class ControlGui(QtWidgets.QWidget):
     def __init__(self, queue, *scan_widgets, **kwargs):
         super().__init__(**kwargs)
         self.queue = queue
+        self.md_parameters = MetaDataEntry(name='Metadata')
+        self.md_widget = ParameterTree()
+        self.md_widget.setParameters(self.md_parameters)
+        t2 = ParameterTree()
         vlayout = QtWidgets.QVBoxLayout()
         self.tabs = TabScanSelector(*scan_widgets)
+
         vlayout.addWidget(self.tabs)
+        for sw in scan_widgets:
+            sw.md_parameters = self.md_parameters
 
         self.go_button = QtWidgets.QPushButton('SCAN!')
+        self.md_button = QtWidgets.QPushButton('edit metadata')
+        vlayout.addWidget(self.md_button)
         vlayout.addWidget(self.go_button)
 
         def runner():
             self.queue.put(self.tabs.get_plan())
 
         self.go_button.clicked.connect(runner)
+        self.md_button.clicked.connect(self.md_widget.show)
         self.setLayout(vlayout)
