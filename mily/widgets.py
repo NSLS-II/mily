@@ -315,6 +315,49 @@ class Scan1D(QtWidgets.QWidget):
                                   *self.motors_widget.active_motor.get_args())
 
 
+class Count(QtWidgets.QWidget):
+    """Widget for 1D scans.
+
+    The wrapped plan must have the signature ::
+
+       def plan(dets : List[OphydObj],
+                num : int, float=None : Optional[float]*
+                md=None : Dict[str, Any]) -> Any:
+    """
+    def __init__(self, name, plan, detectors_widget, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.plan_function = plan
+        vlayout = QtWidgets.QVBoxLayout()
+        hlayout = QtWidgets.QHBoxLayout()
+        # num spinner
+        self.num_spin = MISpin('num')
+        self.num_spin.setRange(1, 2**16)  # 65k maximum, 18hr @ 1hz
+        hlayout.addLayout(hstacked_label('num', self.num_spin))
+
+        # float spinner
+        self.delay_spin = MFSpin('delay')
+        self.delay_spin.setRange(0, 60*60)  # maximum delay an hour
+        self.delay_spin.setDecimals(1)                 # only 0.1s precision from GUI
+        self.delay_spin.setSuffix('s')
+        hlayout.addLayout(label_layout('delay', False, self.delay_spin))
+        hlayout.addStretch()
+        vlayout.addLayout(hlayout)
+        # set up the detector selector
+        self.dets = detectors_widget
+        vlayout.addWidget(self.dets)
+
+        self.setLayout(vlayout)
+
+    def get_plan(self):
+        d = self.delay_spin.value() if self.delay_spin.isEnabled() else None
+        num = self.num_spin.value()
+        return self.plan_function(self.dets.active_detectors,
+                                  num=num,
+                                  delay=d)
+
+
+
 class ControlGui(QtWidgets.QWidget):
     def __init__(self, queue, *scan_widgets, **kwargs):
         super().__init__(**kwargs)
