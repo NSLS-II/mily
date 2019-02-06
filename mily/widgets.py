@@ -189,11 +189,11 @@ class DetectorSelector(QtWidgets.QGroupBox):
             self.button_group.addButton(button)
             vlayout.addWidget(button)
 
-    @property
-    def active_detectors(self):
-        return [b.det
-                for b in self.button_group.buttons()
-                if b.isChecked()]
+    def get_detectors(self):
+        return tuple(b.det
+                     for b in self.button_group.buttons()
+                     if b.isChecked())
+
 
 
 class BoundingBox(QtWidgets.QWidget):
@@ -270,6 +270,10 @@ class MotorSelector(QtWidgets.QWidget):
         except IndexError:
             pass
 
+    def get_args(self):
+        return self.active_motor.get_args()
+
+
 class TabScanSelector(QtWidgets.QWidget):
     def __init__(self, *scan_widgets, **kwargs):
         super().__init__(**kwargs)
@@ -315,11 +319,11 @@ class Scan1D(QtWidgets.QWidget):
         self.setLayout(vlayout)
 
     def get_plan(self):
-        md = (self.md_parameters.collect_metadata()
+        md = (self.md_parameters.get_metadata()
               if self.md_parameters is not None
               else None)
-        return self.plan_function(self.dets.active_detectors,
-                                  *self.motors_widget.active_motor.get_args(),
+        return self.plan_function(self.dets.get_detectors(),
+                                  *self.motors_widget.get_args(),
                                   md=md)
 
 
@@ -355,10 +359,10 @@ class Count(QtWidgets.QWidget):
     def get_plan(self):
         d = self.delay_spin.value() if self.delay_spin.isEnabled() else None
         num = self.num_spin.value()
-        md = (self.md_parameters.collect_metadata()
+        md = (self.md_parameters.get_metadata()
               if self.md_parameters is not None
               else None)
-        return self.plan_function(self.dets.active_detectors,
+        return self.plan_function(self.dets.get_detectors(),
                                   num=num,
                                   delay=d,
                                   md=md)
@@ -383,7 +387,7 @@ class MetaDataEntry(pTypes.GroupParameter):
                            removable=True,
                            renamable=True))
 
-    def collect_metadata(self):
+    def get_metadata(self):
         return {k: v
                 for k, (v, _) in self.getValues().items()}
 
