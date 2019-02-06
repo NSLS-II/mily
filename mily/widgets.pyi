@@ -1,5 +1,4 @@
 from typeing import Generator, Tuple, Iterable, Dict, Any
-from qtpy import QtWidgets
 
 from bluesky import Msg
 
@@ -13,17 +12,17 @@ class OphydObj:
     ...
 
 
-class ScanInputWidget(QtWidgets.QtWidget):
+class ScanInputWidget:
     def get_plan(self) -> Generator[Msg]:
         ...
 
 
-class MotorRangeSelector(QtWidgets.QtWidget):
+class MotorRangeSelector:
     def get_args(self) -> Tuple[Settable, float, float, int]:
         ...
 
 
-class DetectorSelector(QtWidget.QtWidget):
+class DetectorSelector:
     def get_detectors(self) -> Tuple[OphydObj, ...]:
         ...
 
