@@ -395,7 +395,6 @@ class ControlGui(QtWidgets.QWidget):
         self.md_parameters = MetaDataEntry(name='Metadata')
         self.md_widget = ParameterTree()
         self.md_widget.setParameters(self.md_parameters)
-        t2 = ParameterTree()
         vlayout = QtWidgets.QVBoxLayout()
         self.tabs = TabScanSelector(*scan_widgets)
 
