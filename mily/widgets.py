@@ -388,34 +388,53 @@ class MetaDataEntry(pTypes.GroupParameter):
                 for k, (v, _) in self.getValues().items()}
 
 
-class RunUid(QtWidgets.QLabel):
+class StartLabel(QtWidgets.QLabel):
+    format_str = 'last scan: {uid}'
+
     def doc_consumer(self, name, doc):
         if name == 'start':
-            self.setText(doc['uid'])
+            self.setText(self.format_str.format(**doc))
+
+
+class LivePlaceholder(QtWidgets.QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.label = QtWidgets.QLabel('BUILD HERE')
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    def doc_consumer(self, name, doc):
+        ...
 
 
 class ControlGui(QtWidgets.QWidget):
-    def __init__(self, queue, teleport, *scan_widgets, **kwargs):
+    def __init__(self, queue, teleport, *scan_widgets,
+                 live_widget=None,
+                 **kwargs):
         super().__init__(**kwargs)
+        self.label = label = StartLabel()
         self.queue = queue
         self.teleport = teleport
         self.md_parameters = MetaDataEntry(name='Metadata')
         self.md_widget = ParameterTree()
         self.md_widget.setParameters(self.md_parameters)
-        vlayout = QtWidgets.QVBoxLayout()
+        outmost_layout = QtWidgets.QHBoxLayout()
+
+        input_layout = QtWidgets.QVBoxLayout()
+        outmost_layout.addLayout(input_layout)
+
+        input_layout.addWidget(label)
         self.tabs = TabScanSelector(*scan_widgets)
 
-        vlayout.addWidget(self.tabs)
+        input_layout.addWidget(self.tabs)
         for sw in scan_widgets:
             sw.md_parameters = self.md_parameters
 
         self.go_button = QtWidgets.QPushButton('SCAN!')
         self.md_button = QtWidgets.QPushButton('edit metadata')
-        vlayout.addWidget(self.md_button)
-        vlayout.addWidget(self.go_button)
-
-        self.label = label = RunUid()
-        vlayout.addWidget(label)
+        input_layout.addWidget(self.md_button)
+        input_layout.addWidget(self.go_button)
 
         self.teleport.name_doc.connect(label.doc_consumer)
 
@@ -430,4 +449,10 @@ class ControlGui(QtWidgets.QWidget):
 
         self.go_button.clicked.connect(runner)
         self.md_button.clicked.connect(self.md_widget.show)
-        self.setLayout(vlayout)
+
+        if live_widget is None:
+            live_widget = LivePlaceholder()
+        self.live_widget = live_widget
+        outmost_layout.addWidget(live_widget)
+
+        self.setLayout(outmost_layout)
