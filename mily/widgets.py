@@ -453,6 +453,7 @@ class ControlGui(QtWidgets.QWidget):
         if live_widget is None:
             live_widget = LivePlaceholder()
         self.live_widget = live_widget
+        self.teleport.name_doc.connect(live_widget.doc_consumer)
         outmost_layout.addWidget(live_widget)
 
         self.setLayout(outmost_layout)
