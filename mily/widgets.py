@@ -1,8 +1,10 @@
 from qtpy import QtWidgets
 from ophyd import Device
 import datetime
-
-from  pyqtgraph.parametertree import parameterTypes as pTypes, ParameterTree
+from bluesky.run_engine import Dispatcher
+from bluesky.callbacks.best_effort import BestEffortCallback
+from event_model import DocumentNames
+from pyqtgraph.parametertree import parameterTypes as pTypes, ParameterTree
 
 
 def label_layout(name, required, widget, label_pos='h'):
@@ -193,12 +195,6 @@ class DetectorSelector(QtWidgets.QGroupBox):
         return tuple(b.det
                      for b in self.button_group.buttons()
                      if b.isChecked())
-
-
-
-class BoundingBox(QtWidgets.QWidget):
-    def __init__(self, name, **kwargs):
-        pass
 
 
 class OphydKinds(QtWidgets.QTreeWidget):
@@ -392,10 +388,17 @@ class MetaDataEntry(pTypes.GroupParameter):
                 for k, (v, _) in self.getValues().items()}
 
 
+class RunUid(QtWidgets.QLabel):
+    def doc_consumer(self, name, doc):
+        if name == 'start':
+            self.setText(doc['uid'])
+
+
 class ControlGui(QtWidgets.QWidget):
-    def __init__(self, queue, *scan_widgets, **kwargs):
+    def __init__(self, queue, teleport, *scan_widgets, **kwargs):
         super().__init__(**kwargs)
         self.queue = queue
+        self.teleport = teleport
         self.md_parameters = MetaDataEntry(name='Metadata')
         self.md_widget = ParameterTree()
         self.md_widget.setParameters(self.md_parameters)
@@ -410,6 +413,17 @@ class ControlGui(QtWidgets.QWidget):
         self.md_button = QtWidgets.QPushButton('edit metadata')
         vlayout.addWidget(self.md_button)
         vlayout.addWidget(self.go_button)
+
+        self.label = label = RunUid()
+        vlayout.addWidget(label)
+
+        self.teleport.name_doc.connect(label.doc_consumer)
+
+        self.cbr = Dispatcher()
+        self.bec = BestEffortCallback()
+        self.teleport.name_doc.connect(
+            lambda name, doc: self.cbr.process(DocumentNames(name), doc))
+        self.cbr.subscribe(self.bec)
 
         def runner():
             self.queue.put(self.tabs.get_plan())

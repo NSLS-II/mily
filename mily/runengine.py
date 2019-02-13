@@ -1,6 +1,13 @@
 from bluesky import RunEngine, Msg
+from qtpy import QtCore
 import threading
 import asyncio
+
+from qtpy import QtCore
+
+
+class Teleporter(QtCore.QObject):
+    name_doc = QtCore.Signal(str, dict)
 
 
 def _get_asyncio_queue(loop):
@@ -35,6 +42,7 @@ def _get_asyncio_queue(loop):
 def spawn_RE(*, loop=None, **kwargs):
     RE = RunEngine(context_managers=[], **kwargs)
     queue = _get_asyncio_queue(RE.loop)()
+    t = Teleporter()
 
     async def get_next_message(msg):
         return await queue.async_get()
@@ -58,4 +66,6 @@ def spawn_RE(*, loop=None, **kwargs):
                               name='RE')
     thread.start()
 
-    return RE, queue, thread
+    RE.subscribe(t.name_doc.emit)
+
+    return RE, queue, thread, t
