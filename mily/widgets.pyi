@@ -1,4 +1,4 @@
-from typeing import Generator, Tuple, Iterable, Dict, Any
+from typing import Generator, Tuple, Iterable, Dict, Any
 
 from bluesky import Msg
 
