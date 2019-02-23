@@ -27,6 +27,32 @@ def clear_layout(layout):
             clear_layout(child.layout())
 
 
+def reload_widget_stylesheet(widget, cascade=False):
+    """
+    Reload the stylesheet of a QWidget
+
+    When a ``pyqtProperty`` is updated, a widget does not automatically reapply
+    its stylesheet. This is an issue if a stylesheet is conditionally applied
+    based on the ``pyqtProperty`` value. This method handles reapplying the
+    existing stylesheet to guarantee that interface is up-to-date with any
+    changes to the contained properties
+
+    Parameters
+    ----------
+    widget: QWidget
+
+    cascade: bool, optional
+        Any child of the provided widget will also re-update its stylesheet
+    """
+    widget.style().unpolish(widget)
+    widget.style().polish(widget)
+    widget.update()
+    if cascade:
+        for child in widget.children():
+            if isinstance(child, QWidget):
+                reload_widget_stylesheet(child, cascade=True)
+
+
 def raise_to_operator(exc):
     """
     Utility function to show a Python Exception in QMessageBox
