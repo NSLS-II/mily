@@ -74,10 +74,10 @@ def raise_to_operator(exc, execute=True):
     err_msg.setWindowTitle(type(exc).__name__)
     err_msg.setIcon(QMessageBox.Critical)
     # Format traceback as detailed text
-    handle = io.StringIO()
-    traceback.print_tb(exc.__traceback__, file=handle)
-    handle.seek(0)
-    err_msg.setDetailedText(handle.read())
+    with io.StringIO() as handle:
+        traceback.print_tb(exc.__traceback__, file=handle)
+        handle.seek(0)
+        err_msg.setDetailedText(handle.read())
     if execute:
         # Execute
         err_msg.exec_()
