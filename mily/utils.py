@@ -53,7 +53,7 @@ def reload_widget_stylesheet(widget, cascade=False):
                 reload_widget_stylesheet(child, cascade=True)
 
 
-def raise_to_operator(exc):
+def raise_to_operator(exc, execute=True):
     """
     Utility function to show a Python Exception in QMessageBox
 
@@ -64,6 +64,9 @@ def raise_to_operator(exc):
     Parameters
     ----------
     exc: Exception
+
+    execute: bool, optional
+        Whether to execute the QMessageBox
     """
     # Assemble QMessageBox with Exception details
     err_msg = QMessageBox()
@@ -75,6 +78,7 @@ def raise_to_operator(exc):
     traceback.print_tb(exc.__traceback__, file=handle)
     handle.seek(0)
     err_msg.setDetailedText(handle.read())
-    # Execute
-    err_msg.exec_()
+    if execute:
+        # Execute
+        err_msg.exec_()
     return err_msg
