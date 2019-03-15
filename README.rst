@@ -75,7 +75,11 @@ blusky-qtui
     A high-performance openGL based image display widget
 
 `xray-vision <https://github.com/Nikea/xray-vision>`__
-    Domain specific plotting and GUI widgets for X-ray science
+   Domain specific plotting and GUI widgets for X-ray science
+
+`adviewer <https://github.com/pcdshub/adviewer>`__
+   AreaDetector configuration and viewing / based on typhon, pydm, and ophyd
+
 
 Dependencies
 ------------
