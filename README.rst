@@ -34,20 +34,20 @@ high-level goals of this project are:
 In Scope
 ++++++++
 
- - "smarter" versions of core Qt widgets (ex, float-aware ``QSlider``,
-   spin-box + label, display alarm state)
- - domain-specific visualization
- - helper functions for managing Widgets / windows
- - dialog to show an exception to the user
- - auto-form generation tools
+- "smarter" versions of core Qt widgets (ex, float-aware ``QSlider``,
+  spin-box + label, display alarm state)
+- domain-specific visualization
+- helper functions for managing Widgets / windows
+- dialog to show an exception to the user
+- auto-form generation tools
 
 Out of Scope
 ++++++++++++
 
- - data reduction, transformation, or analysis code
- - control-system aware code
- - data I/O code
- - business logic
+- data reduction, transformation, or analysis code
+- control-system aware code
+- data I/O code
+- business logic
 
 Related projects
 ++++++++++++++++
@@ -80,16 +80,16 @@ blusky-qtui
 Dependencies
 ------------
 
- - qtpy
- - pyqtgraph (optional)
- - matplotlib (optional)
+- qtpy
+- pyqtgraph (optional)
+- matplotlib (optional)
 
 Other dependencies (databroker, xarray, scikit-beam, scipy, etc) may
 be injected into widgets.
 
- - widgets that take in structured meta-data should take in documents
-   compliant with `event model <https://github.com/NSLS-II/event-model>`__
- - prefer numpy arrays, pandas dataframes, and xarray objects to support
-   richer 'bulk' data.
- - define (simple) interfaces when needed, but prefer to ducktype
-   standard objects.
+- widgets that take in structured meta-data should take in documents
+  compliant with `event model <https://github.com/NSLS-II/event-model>`__
+- prefer numpy arrays, pandas dataframes, and xarray objects to support
+  richer 'bulk' data.
+- define (simple) interfaces when needed, but prefer to ducktype
+  standard objects.
