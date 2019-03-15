@@ -64,7 +64,7 @@ Related projects
 `databroker-browser <https://github.com/NSLS-II/databroker-browser>`__
     This is GUI for browsing runs that are stored in the databroker.
 
-blusky-qtui
+bluesky-qtui
     Qt widgets for capturing user input to `blueksy
     <https://github.com/nsls-ii/bluesky>`__ plans
 
