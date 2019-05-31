@@ -1,71 +1,67 @@
+from . import threads
 from bluesky import RunEngine, Msg
-from qtpy import QtCore
-import threading
-import asyncio
-
-from qtpy import QtCore
+from qtpy.QtCore import QObject, Signal
+from bluesky.preprocessors import subs_wrapper
 
 
-class Teleporter(QtCore.QObject):
-    name_doc = QtCore.Signal(str, dict)
+# TODO: Allow queueing plans
+# TODO: Application logging
+# TODO: Capture state callbacks
+# TODO: Add convenient gui-thread targeted callback mechanism
 
+class QRunEngine(QObject):
+    sigDocumentYield = Signal(str, dict)
+    sigAbort = Signal()  # TODO: wireup me
+    sigException = Signal()
+    sigFinish = Signal()
+    sigStart = Signal()
+    sigPause = Signal()
+    sigResume = Signal()
 
-def _get_asyncio_queue(loop):
-    class AsyncioQueue(asyncio.Queue):
-        '''
-        Asyncio queue modified for caproto server layer queue API compatibility
+    def __init__(self, **kwargs):
+        super(QRunEngine, self).__init__()
 
-        NOTE: This is bound to a single event loop for compatibility with
-        synchronous requests.
-        '''
-        def __init__(self, *, loop=loop, **kwargs):
-            super().__init__(loop=loop, **kwargs)
+        self.RE = RunEngine(context_managers=[], **kwargs)
+        self.RE.subscribe(self.sigDocumentYield.emit)
 
-        async def async_get(self):
-            return await super().get()
+    def __call__(self, *args, **kwargs):
+        if not self.isIdle:
+            # TODO: run confirm callback
+            self.RE.abort()
+            self.RE.reset()
+            self.threadfuture.wait()
 
-        async def async_put(self, value):
-            return await super().put(value)
+        self.threadfuture = threads.QThreadFuture(self.RE, *args, **kwargs,
+                                                  threadkey='RE',
+                                                  showBusy=True,
+                                                  finished_slot=self.sigFinish.emit)
+        self.threadfuture.start()
+        self.sigStart.emit()
 
-        def get(self):
-            future = asyncio.run_coroutine_threadsafe(self.async_get(), loop)
-            return future.result()
+    # state_hook
 
-        def put(self, value):
-            future = asyncio.run_coroutine_threadsafe(
-                self.async_put(value), loop)
-            return future.result()
+    @property
+    def isIdle(self):
+        return self.RE.state == 'idle'
 
-    return AsyncioQueue
+    def abort(self, reason=''):
+        if self.RE.state != 'idle':
+            self.RE.abort(reason=reason)
+            self.sigAbort.emit()
 
+    def pause(self, defer=False):
+        if self.RE.state != 'paused':
+            self.RE.request_pause(defer)
+            self.sigPause.emit()
 
-def spawn_RE(*, loop=None, **kwargs):
-    RE = RunEngine(context_managers=[], **kwargs)
-    queue = _get_asyncio_queue(RE.loop)()
-    t = Teleporter()
+    def resume(self, ):
+        if self.RE.state == 'paused':
+            self.threadfuture = threads.QThreadFuture(self.RE.resume,
+                                                      threadkey='RE',
+                                                      showBusy=True,
+                                                      finished_slot=self.sigFinish.emit)
+            self.threadfuture.start()
+            self.sigResume.emit()
 
-    async def get_next_message(msg):
-        return await queue.async_get()
-
-    RE.register_command('next_plan', get_next_message)
-
-    def forever_plan():
-        while True:
-            plan = yield Msg('next_plan')
-            try:
-                yield from plan
-            except GeneratorExit:
-                raise
-            except Exception as ex:
-                print(f'things went sideways \n{ex}')
-
-    def thread_task():
-        RE(forever_plan())
-
-    thread = threading.Thread(target=thread_task, daemon=True,
-                              name='RE')
-    thread.start()
-
-    RE.subscribe(t.name_doc.emit)
-
-    return RE, queue, thread, t
+# FIXME: Subscribe application-wide logging like this...
+#RE.sigDocumentYield.connect(partial(msg.logMessage, level=msg.DEBUG))
