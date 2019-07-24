@@ -4,35 +4,6 @@ import datetime
 from pyqtgraph.parametertree import parameterTypes as pTypes
 
 
-def label_layout(name, required, widget, label_pos='h'):
-    hlayout = QtWidgets.QHBoxLayout()
-    if label_pos == 'h':
-        llayout = QtWidgets.QHBoxLayout()
-    elif label_pos == 'v':
-        llayout = QtWidgets.QVBoxLayout()
-    else:
-        raise ValueError(f'label_pos: {label_pos} is invalid.  ' +
-                         'must be one of {"h", "v"}')
-    label = QtWidgets.QLabel(name)
-    cb = QtWidgets.QCheckBox()
-    hlayout.addWidget(cb)
-    llayout.addWidget(label)
-    llayout.addWidget(widget)
-    hlayout.addLayout(llayout)
-    hlayout.addStretch()
-
-    if required:
-        cb.setChecked(True)
-        cb.setEnabled(False)
-    else:
-        cb.setCheckable(True)
-        cb.stateChanged.connect(widget.setEnabled)
-        cb.setChecked(False)
-        widget.setEnabled(False)
-
-    return hlayout
-
-
 def vstacked_label(name, widget):
     "Add a label above a widget"
     vlayout = QtWidgets.QVBoxLayout()
@@ -108,28 +79,6 @@ class MDateTime(QtWidgets.QDateTimeEdit):
     def set_default(self, v):
         if v is not None:
             self.setDateTime(v)
-
-
-class OphydKinds(QtWidgets.QTreeWidget):
-    def __init__(self, *args, obj, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.set_object(obj)
-
-    def set_object(self, obj):
-        self._obj = obj
-
-        def fill_item(item, value):
-            item.setExpanded(True)
-            child = QtWidgets.QTreeWidgetItem([value.name,
-                                               str(value.kind)])
-            item.addChild(child)
-            if isinstance(value, Device):
-                for k in value.component_names:
-                    fill_item(child, getattr(value, k))
-
-        self.clear()
-        fill_item(self.invisibleRootItem(), obj)
 
 
 # Modified from pyqtgraph examples
