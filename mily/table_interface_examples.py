@@ -1,4 +1,4 @@
-from .table_interface import MTableInterfaceWidgetWithExport
+from .table_interface import MFunctionTableInterfaceWidget
 from .widgets import MText, MComboBox, MISpin, MFSpin
 
 
@@ -29,8 +29,8 @@ def simple_function(str_var='label', selector_var='yes', float_var=1.0,
     print((str_var, selector_var, float_var, int_var))
 
 
-class SimpleFunctionWidget(MTableInterfaceWidgetWithExport):
-    '''A ``MTableInterfaceWidgetWithExport`` for use with simple_function.
+class SimpleFunctionWidget(MFunctionTableInterfaceWidget):
+    '''A ``MFunctionTableInterfaceWidget`` for use with simple_function.
 
     Adds custom ``selector_values``, ``editor_map`` and ``default_rows``
     attributes which contain some function specfic information and/or user
