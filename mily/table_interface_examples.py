@@ -1,24 +1,10 @@
 from .table_interface import MFunctionTableInterfaceWidget
+from functools import partial
 from .widgets import MText, MComboBox, MISpin, MFSpin
 
-
-def partialclass(cls, partial_kwargs):
-    '''Returns a partial class with 'partial_kwargs' values set
-
-
-    This function returns a class whereby any args/kwargs in the dictionary
-    ``partial_kwargs`` are set.
-
-    Parameters
-    ----------
-    partial_kwargs : dict
-        a dict mapping arg/kwarg parameters to values.
-    '''
-
-    class PartialClass(cls):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **{**partial_kwargs, **kwargs})
-    return PartialClass
+def mcombobox_factory(name, items, parent, **kwargs):
+    '''Allows functools.partial to be employed to define 'items'.'''
+    return MComboBox(name, parent=parent, items=items, **kwargs)
 
 
 # simplest possible tableInterface GUI example
@@ -60,8 +46,8 @@ class SimpleFunctionWidget(MFunctionTableInterfaceWidget):
                                'float_var': 3.3, 'int_var': 3}]
 
         table_editor_map = {'str_var': MText,
-                            'selector_var': partialclass(MComboBox,
-                                                         {'items': _sel_dict}),
+                            'selector_var': partial(mcombobox_factory,
+                                                    'items'= _sel_dict),
                             'float_var': MFSpin,
                             'int_var': MISpin}
         super().__init__(simple_function, name, *args,
