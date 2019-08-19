@@ -184,9 +184,13 @@ class MTableInterfaceView(QTableView):
             row_params = {}
             for column in range(0, model.columnCount()):
                 item = model.item(row, column)
-                row_params[column_names[column]] = (item.data(Qt.DisplayRole))
+                if item:
+                    value = item.data(Qt.DisplayRole)
+                else:
+                    value=None
+                row_params[column_names[column]] = value
             parameters.append(row_params)
-        return(self._name, parameters)
+        return {self._name: parameters}
 
     def set_default(self, parameters):
         '''Sets the default values from 'parameters' to the model
@@ -304,9 +308,7 @@ class MTableInterfaceWidget(QWidget):
 
         # create a QLabel which describes the table
         if not self.mainLayoutString:
-            self.mainLayoutString = (f'Below you can map "labels" to the '
-                                     f'args/ kwargs for the function "'
-                                     f'{self.function.__name__}"')
+            self.mainLayoutString = (f'')
 
         self.mainLabel = QLabel(self.mainLayoutString)
         self.mainLayout.addWidget(self.mainLabel)
@@ -418,20 +420,20 @@ class MTableInterfaceWidget(QWidget):
         # if parameters is None set it to an empty list.
         if not parameters:
             parameters = []
+        else:
+            # extract and set prefix parameters
+            if self.prefix_editor_map:
+                prefix_parameters = parameters.pop(0)
+                for parameter, value in prefix_parameters.items():
+                    editor = getattr(self, parameter)
+                    editor.set_default(value)
 
-        # extract and set prefix parameters
-        if self.prefix_editor_map:
-            prefix_parameters = parameters.pop(0)
-            for parameter, value in prefix_parameters.items():
-                editor = getattr(self, parameter)
-                editor.set_default(value)
-
-        # extract and set suffix parameters
-        if self.suffix_editor_map:
-            suffix_parameters = parameters.pop(-1)
-            for parameter, value in suffix_parameters.items():
-                editor = getattr(self, parameter)
-                editor.set_default(value)
+            # extract and set suffix parameters
+            if self.suffix_editor_map:
+                suffix_parameters = parameters.pop(-1)
+                for parameter, value in suffix_parameters.items():
+                    editor = getattr(self, parameter)
+                    editor.set_default(value)
 
         # ask self.tableView to set other parameters
         self.tableView.set_default(parameters)
