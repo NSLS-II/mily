@@ -17,7 +17,7 @@ def partialclass(cls, partial_kwargs):
 
     class PartialClass(cls):
         def __init__(self, *args, **kwargs):
-            super().__init__(*args, **partial_kwargs, **kwargs)
+            super().__init__(*args, **{**partial_kwargs, **kwargs})
     return PartialClass
 
 
@@ -49,21 +49,22 @@ class SimpleFunctionWidget(MFunctionTableInterfaceWidget):
 
     '''
 
-    # NOTE I have made these 'class' variables as I am considering
-    # that we may want to make them traitlets for user config reasons.
-    selector_values = ['yes', 'no', 'maybe']
-    default_rows = [{'str_var': 'plan_1', 'selector_var': True,
-                     'float_var': 1.1, 'int_var': 1},
-                    {'str_var': 'plan_2', 'selector_var': False,
-                     'float_var': 2.2, 'int_var': 2},
-                    {'str_var': 'plan_3', 'selector_var': None,
-                     'float_var': 3.3, 'int_var': 3}]
-
     def __init__(self, name, *args, **kwargs):
         _sel_dict = {'yes': True, 'no': False, 'maybe': None}
-        self.editor_map = {'str_var': MText,
-                           'selector_var': partialclass(MComboBox,
-                                                        {'items': _sel_dict}),
-                           'float_var': MFSpin,
-                           'int_var': MISpin}
-        super().__init__(simple_function, name, *args, **kwargs)
+        self.selector_values = list(_sel_dict.keys())
+        default_parameters = [{'str_var': 'plan_1', 'selector_var': True,
+                               'float_var': 1.1, 'int_var': 1},
+                              {'str_var': 'plan_2', 'selector_var': False,
+                               'float_var': 2.2, 'int_var': 2},
+                              {'str_var': 'plan_3', 'selector_var': None,
+                               'float_var': 3.3, 'int_var': 3}]
+
+        table_editor_map = {'str_var': MText,
+                            'selector_var': partialclass(MComboBox,
+                                                         {'items': _sel_dict}),
+                            'float_var': MFSpin,
+                            'int_var': MISpin}
+        super().__init__(simple_function, name, *args,
+                         table_editor_map=table_editor_map,
+                         default_parameters=[{}, *default_parameters, {}],
+                         **kwargs)

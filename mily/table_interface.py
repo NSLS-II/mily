@@ -21,10 +21,10 @@ class MTableItemDelegate(QStyledItemDelegate):
     adds an ``_name`` attribute for consistency with the `mily.widgets`` API.
     '''
 
-    def __init__(self, parent, name, *args, **kwargs):
+    def __init__(self, parent, name, *args, editor_map={}, **kwargs):
         self._name = name
         super().__init__(*args, parent=parent, **kwargs)
-        self.editor_map = getattr(self.parent(), 'editor_map', {})
+        self.editor_map = editor_map
 
     def displayText(self, value, locale):
         '''converts the value of the editor to a display string.
@@ -144,16 +144,18 @@ class MTableInterfaceView(QTableView):
         class, the default is ``PyQt5.QtGui.QStandardItemModel.
     '''
 
-    def __init__(self, parent, name, *args, delegate=MTableItemDelegate,
-                 model=QStandardItemModel, **kwargs):
+    def __init__(self, parent, name, *args, editor_map={},
+                 delegate=MTableItemDelegate, model=QStandardItemModel,
+                 **kwargs):
         self._name = name
+        self.editor_map=editor_map
         super().__init__(*args, parent=parent, **kwargs)
-        self.editor_map = getattr(self.parent(), 'editor_map', {})
         # Apply some style options
         self.horizontalHeader().setDefaultAlignment(Qt.AlignHCenter)
         self.setAlternatingRowColors(True)
         # set the table delegate
-        self.setItemDelegate(delegate(self, self.parent()._name+'_model'))
+        self.setItemDelegate(delegate(self, self.parent()._name+'_model',
+                                      editor_map=self.editor_map))
         # set the model and set column headers from editor_map if possible
         self.setModel(model(self))
         if self.editor_map:
@@ -169,28 +171,6 @@ class MTableInterfaceView(QTableView):
         for signal in signals:
             signal.connect(self.resizeColumnsToContents)
             signal.connect(self.resizeRowsToContents)
-
-    def get_parameters(self):
-        '''Return the entire data from the table.
-
-        Returns the entire table data as a list of dicts, with each dict being
-        a row that maps the column header to it's value. This follows the
-        ``mily.widget`` API.
-        '''
-        column_names = list(self.editor_map.keys())
-        model = self.model()
-        parameters = []
-        for row in range(0, model.rowCount()):
-            row_params = {}
-            for column in range(0, model.columnCount()):
-                item = model.item(row, column)
-                if item:
-                    value = item.data(Qt.DisplayRole)
-                else:
-                    value=None
-                row_params[column_names[column]] = value
-            parameters.append(row_params)
-        return {self._name: parameters}
 
     def set_default(self, parameters):
         '''Sets the default values from 'parameters' to the model
@@ -220,14 +200,58 @@ class MTableInterfaceView(QTableView):
                 row_data.append(item)
             model.appendRow(row_data)
 
+    def get_parameters(self):
+        '''Return the entire data from the table.
+
+        Returns the entire table data as a list of dicts, with each dict being
+        a row that maps the column header to it's value. This follows the
+        ``mily.widget`` API.
+        '''
+        column_names = list(self.editor_map.keys())
+        model = self.model()
+        parameters = []
+        for row in range(0, model.rowCount()):
+            parameters.append(self.get_row_parameters(row)[self._name])
+        return {self._name: parameters}
+
+    def get_row_parameters(self, row):
+        '''Returns the data associated with the row defined by 'row'.
+
+        Returns the data associated with row as a dictionary mapping column
+        name to value, and any prefix or suffix data based on the value of the
+        kwargs prefix and suffix.
+
+        Parameters
+        ----------
+        row : int
+            The row number who's data should be extracted.
+        Returns
+        -------
+        parameters  : dict
+            A dictionary mapping kwargs to values.
+        '''
+        column_names = list(self.editor_map.keys())
+        model = self.model()
+        # step through each column adding the value to parameters
+        parameters = {}
+        for column in range(0, model.columnCount()):
+            item = model.item(row, column)
+            if item:
+                value = item.data(Qt.DisplayRole)
+            else:
+                value=None
+            parameters[column_names[column]] = value
+
+        return {self._name: parameters}
+
 
 class MTableInterfaceWidget(QWidget):
     '''Table like interface widget based on the ``mily`` API.
 
     This widget allows for 'sets' of the same parameters to be defined as rows
     in a table. The parameters are defined by the 'keys' in the dictionary
-    self.editor_map, where the values of the dictionary are the widgets to be
-    used to update the values for the given columns.In addition 2 other
+    self.table_editor_map, where the values of the dictionary are the widgets
+    to be used to update the values for the given columns.In addition 2 other
     dictionaries ``self.prefix_editor_map`` and ``self.suffix_editor_map`` can
     be set in the same way to provide additional 'global' parameters to be
     returned by the method ``self.get_parameters()`` or inputted using the
@@ -265,38 +289,43 @@ class MTableInterfaceWidget(QWidget):
         The name of the widget, stored on self._name
     *args/**kwargs : various
         args and kwargs to be passed to ``PyQt5.QtWidgets.QWidget``.
-    title : str
-        The title to give the widget.
-    label_header : str
-        The header to use for the label column in the table.
-    geometry : tuple
+    prefix_editor_map : dict, optional
+        A dictionary that maps parameter names to editor widgets, for
+        parameters that are to be displayed above the table.
+    table_editor_map : dict, optional
+        A dictionary that maps column names to editor widgets, for
+        parameters that are to be displayed in the table.
+    suffix_editor_map : dict, optional
+        A dictionary that maps parameter names to editor widgets, for
+        parameters that are to be displayed below the table.
+    default_parameters : [dicts]
+        A list of dicts following the structure defined above that contain
+        default values to be loaded into the table.
+    title : str, optional
+        An optional title for the widget, used if the widget is created in its
+        own window.
+    geometry : tuple, optional
         The location and size of the widget given as a tuple with the values:
         ``(left, top, width, height)``.
+    mainLayoutString : str, optional
+        A string that will appear above all of the widgets in the layout
     '''
 
-    # A list of dicts mapping column names to default values, each dict is a
-    # new row.
-    default_rows = []
-
     def __init__(self, name, *args, delegate=MTableItemDelegate,
-                 title='Default Title', label_header='label',
-                 geometry=(100, 100, 800, 300), mainLayoutString=None,
-                 **kwargs):
+                 prefix_editor_map={}, table_editor_map={},
+                 suffix_editor_map={}, default_parameters=[],
+                 title='Default Title', geometry=(100, 100, 800, 300),
+                 mainLayoutString=None, **kwargs):
         super().__init__(*args, **kwargs)
-
         self._name = name
+        self.prefix_editor_map = prefix_editor_map
+        self.table_editor_map = table_editor_map
+        self.suffix_editor_map = suffix_editor_map
+        self.default_parameters = default_parameters
         self.title = title
-        self.label_header = label_header
         self.geometry = geometry
         self.mainLayoutString = mainLayoutString
         self.setAutoFillBackground(True)
-        # if a child class has not defined the editor maps define them.
-        if not hasattr(self, 'editor_map'):
-            self.editor_map = {}
-        if not hasattr(self, 'suffix_editor_map'):
-            self.suffix_editor_map = {}
-        if not hasattr(self, 'prefix_editor_map'):
-            self.prefix_editor_map = {}
         self._initUI(delegate)
 
     def _initUI(self, delegate):
@@ -324,14 +353,12 @@ class MTableInterfaceWidget(QWidget):
 
         # create the table view
         self.tableView = MTableInterfaceView(self, self._name+'_view',
+                                             editor_map=self.table_editor_map,
                                              delegate=delegate)
         self.mainLayout.addWidget(self.tableView)
 
         # enable sorting of the table
         self.tableView.setSortingEnabled(True)
-
-        # load the default_entries and resize the table columns
-        self.set_default(self.default_rows)
 
         # if any global parameters are specifed in suffix_editor_map add them
         if self.suffix_editor_map:
@@ -341,6 +368,9 @@ class MTableInterfaceWidget(QWidget):
                 widget = getattr(self, name)
                 self.suffixLayout.addLayout(vstacked_label(name, widget))
             self.mainLayout.addLayout(self.suffixLayout)
+
+        # load the default_entries
+        self.set_default(self.default_parameters)
 
         # create and add buttons
         self.btnLayout = QHBoxLayout()
@@ -376,34 +406,6 @@ class MTableInterfaceWidget(QWidget):
         self.mainLayout.addLayout(self.btnLayout)
         self.setLayout(self.mainLayout)
 
-    def get_parameters(self):
-        '''Return the entire data from the table.
-
-        Returns the entire table data as a list of dicts, with each dict being
-        a row that maps the column header to it's value. This follows the
-        ``mily.widget`` API.
-
-        '''
-        parameters = []
-        prefix_dict = {}
-        for key in self.prefix_editor_map.keys():
-            widget = getattr(self, key)
-            prefix_dict.update(widget.get_parameters())
-        if prefix_dict:  # If there are any prefix items
-            parameters.append(prefix_dict)
-
-        view_list = self.tableView.get_parameters()[self.tableView._name]
-        parameters.extend(view_list)
-
-        suffix_dict = {}
-        for key in self.suffix_editor_map.keys():
-            widget = getattr(self, key)
-            suffix_dict.update(widget.get_parameters())
-        if suffix_dict:  # If there are any suffix items
-            parameters.append(suffix_dict)
-
-        return {self._name: parameters}
-
     def set_default(self, parameters):
         '''Sets the default values from 'parameters' to the model.
 
@@ -422,23 +424,44 @@ class MTableInterfaceWidget(QWidget):
             parameters = []
         else:
             # extract and set prefix parameters
-            if self.prefix_editor_map:
-                prefix_parameters = parameters.pop(0)
-                for parameter, value in prefix_parameters.items():
-                    editor = getattr(self, parameter)
-                    editor.set_default(value)
+            prefix_parameters = parameters.pop(0)
+            for parameter, value in prefix_parameters.items():
+                editor = getattr(self, parameter)
+                editor.set_default(value)
 
             # extract and set suffix parameters
-            if self.suffix_editor_map:
-                suffix_parameters = parameters.pop(-1)
-                for parameter, value in suffix_parameters.items():
-                    editor = getattr(self, parameter)
-                    editor.set_default(value)
+            suffix_parameters = parameters.pop(-1)
+            for parameter, value in suffix_parameters.items():
+                editor = getattr(self, parameter)
+                editor.set_default(value)
 
         # ask self.tableView to set other parameters
         self.tableView.set_default(parameters)
 
-    def extract_prefix_data(self):
+    def get_parameters(self):
+        '''Return the entire data from the table.
+
+        Returns the entire table data as a list of dicts, with each dict being
+        a row that maps the column header to it's value. This follows the
+        ``mily.widget`` API.
+
+        '''
+        parameters = []
+
+        # add prefix_dict
+        parameters.append(self.get_prefix_parameters()[self._name])
+
+        # add table dicts
+        view_list = self.tableView.get_parameters()[self.tableView._name]
+        parameters.extend(view_list)
+
+        # add suffix dict
+        parameters.append(self.get_suffix_parameters()[self._name])
+
+        return {self._name: parameters}
+
+
+    def get_prefix_parameters(self):
         '''Returns the data from the prefix widgets.
 
         Returns a dictionary mapping the prefix parameter names to their
@@ -447,11 +470,11 @@ class MTableInterfaceWidget(QWidget):
         parameters = {}
         for parameter in self.prefix_editor_map.keys():
             editor = getattr(self, parameter)
-            parameters.update(editor.get_parameter())
+            parameters.update(editor.get_parameters())
 
-        return parameters
+        return {self._name: parameters}
 
-    def extract_suffix_data(self):
+    def get_suffix_parameters(self):
         '''Returns the data from the suffix widgets.
 
         Returns a dictionary mapping the suffix parameter names to their
@@ -460,11 +483,11 @@ class MTableInterfaceWidget(QWidget):
         parameters = {}
         for parameter in self.suffix_editor_map.keys():
             editor = getattr(self, parameter)
-            parameters.update(editor.get_parameter())
+            parameters.update(editor.get_parameters())
 
-        return parameters
+        return {self._name: parameters}
 
-    def extract_row_data(self, row):
+    def get_row_parameters(self, row):
         '''Returns the data associated with the row defined by 'row'.
 
         Returns the data associated with row as a dictionary mapping column
@@ -480,15 +503,8 @@ class MTableInterfaceWidget(QWidget):
         parameters  : dict
             A dictionary mapping kwargs to values.
         '''
-        column_names = list(self.editor_map.keys())
-        model = self.tableView.model()
-        parameters = {}
-        # step through each column but the first one
-        for column in range(0, model.columnCount()):
-            item = model.item(row, column)
-            parameters[column_names[column]] = item.data(Qt.DisplayRole)
-
-        return parameters
+        params = self.tableView.get_row_parameters(row)[self.tableView._name]
+        return {self._name: params}
 
     def _addRow(self):
         '''inserts an empty row after the (last) currently selected row(s)'''
@@ -622,21 +638,8 @@ class MFunctionTableInterfaceWidget(MTableInterfaceWidget):
     ----------
     function : func
         The function asociated with this table input.
-    name : string
-        The name of the widget, stored on self._name, passed to the parent
-        ``mily.MTableInterfaceWidget``.
     *args/**kwargs : various
         args and kwargs to be passed to the parent
-        ``mily.MTableInterfaceWidget``.
-    title : str
-        The title to give the widget, passed to the parent
-        ``mily.MTableInterfaceWidget``..
-    label_header : str
-        The header to use for the label column in the table, passed to the
-        parent ``mily.MTableInterfaceWidget``.
-    geometry : tuple
-        The location and size of the widget given as a tuple with the values:
-        ``(left, top, width, height)``, passed to the parent
         ``mily.MTableInterfaceWidget``.
     '''
 
@@ -660,10 +663,10 @@ class MFunctionTableInterfaceWidget(MTableInterfaceWidget):
             row = rows[0]
             parameters = {}
             # add the prefix parameter data (if any)
-            parameters.update(self.extract_prefix_data())
+            parameters.update(self.get_prefix_parameters()[self._name])
             # add tableView parameters
-            parameters.update(self.extract_row_data(row))
+            parameters.update(self.get_row_parameters(row)[self._name])
             # add the suffix parameter data (if any)
-            parameters.update(self.extract_suffix_data())
+            parameters.update(self.get_suffix_parameters()[self._name])
 
             self.function(**parameters)
