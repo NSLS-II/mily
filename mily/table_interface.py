@@ -14,7 +14,7 @@ class MTableItemDelegate(QStyledItemDelegate):
     ``get_parameters`` and ``set_default`` methods for reading/writing
     to/from the editor widgets. It has a ``self.editor_map`` attribute that
     maps the column names to editor widgets. It also has a custom method for
-    ``self.createEditor`` that uses ``self. editor_map`` and returns the
+    ``self.createEditor`` that uses ``self.editor_map`` and returns the
     correct editor on request. If editor_map is empty it uses an ``MText``
     widget for all columns. It also enforces the inclusion of a parent
     attribute (something that is optional in the ``QStyledItemDelegate``) and
@@ -27,16 +27,16 @@ class MTableItemDelegate(QStyledItemDelegate):
         self.editor_map = editor_map
 
     def displayText(self, value, locale):
-        '''converts the value of the editor to a display string.
+        '''Converts the value of the editor to a display string.
 
         This method is called whenever the associated model value is updated,
         and updates the associated TableView with the returned str_val for
-        display. It is written such that it will ind the best str to asociate
+        display. It is written such that it will find the best str to associate
         with the object, and will recursively change dict and list keys/items.
         '''
 
         def _get_display_str(value):
-            '''recursively find a list of attr names for a DisplayText.
+            '''Recursively find a list of attr names for a DisplayText.
 
             This checks a number of attr names to see if any are present and
             can be used to give a displayText value. Otherwise it returns the
@@ -45,7 +45,7 @@ class MTableItemDelegate(QStyledItemDelegate):
             after setting displayText's for each key+value (for dicts) or item
             (for lists).
             '''
-            if isinstance(value, list):  # recuresively treat lists
+            if isinstance(value, list):  # recursively treat lists
                 list_val = []
                 for item in value:
                     list_val.append(_get_display_str(item))
@@ -176,13 +176,13 @@ class MTableInterfaceView(QTableView):
         '''Sets the default values from 'parameters' to the model
 
         Sets the data from 'parameters' to the model, overwriting any existing
-        data in the model.This follows the ``mily.widget`` API.
+        data in the model. This follows the ``mily.widget`` API.
 
         Parameters
         ----------
         parameters : [dicts]
-            List of dicts  with each dict being a row that maps the column
-            header to it's value.
+            List of dicts with each dict being a row that maps the column
+            header to its value.
         '''
         model = self.model()
         # Empty the model.
@@ -352,7 +352,7 @@ class MTableInterfaceWidget(QWidget):
             self.mainLayout.addLayout(self.prefixLayout)
 
         # create the table view
-        self.tableView = MTableInterfaceView(self, self._name+'_view',
+        self.tableView = MTableInterfaceView(self, self._name + '_view',
                                              editor_map=self.table_editor_map,
                                              delegate=delegate)
         self.mainLayout.addWidget(self.tableView)
@@ -376,7 +376,7 @@ class MTableInterfaceWidget(QWidget):
         self.btnLayout = QHBoxLayout()
 
         self.addRowBtn = QPushButton('+', self)
-        self.addRowBtn.setToolTip('inserts a blank row(s) after the selected'
+        self.addRowBtn.setToolTip('inserts a blank row(s) after the selected '
                                   'row(s)')
         self.addRowBtn.clicked.connect(self._addRow)
         self.btnLayout.addWidget(self.addRowBtn)
@@ -416,7 +416,7 @@ class MTableInterfaceWidget(QWidget):
         ----------
         parameters : [dicts]
             List of dicts with each dict being a row that maps the column
-            header to it's value.
+            header to its value.
         '''
 
         # if parameters is None set it to an empty list.
@@ -507,19 +507,19 @@ class MTableInterfaceWidget(QWidget):
         return {self._name: params}
 
     def _addRow(self):
-        '''inserts an empty row after the (last) currently selected row(s)'''
+        '''Inserts an empty row after the (last) currently selected row(s).'''
 
         indices = self.tableView.selectionModel().selectedIndexes()
         rows = [index.row() for index in indices]
         rows.sort(reverse=True)
         if rows:  # add an empty row after the last selected row
-            self.tableView.model().insertRow(rows[0]+1, [])
+            self.tableView.model().insertRow(rows[0] + 1, [])
         else:  # If no rows selected add row at end of table
             end_row = self.tableView.model().rowCount()
             self.tableView.model().insertRow(end_row, [])
 
     def _delRow(self):
-        '''deletes the selected row(s)'''
+        '''Deletes the selected row(s).'''
         indices = self.tableView.selectionModel().selectedIndexes()
         rows = [index.row() for index in indices]
         rows.sort(reverse=True)
@@ -537,7 +537,7 @@ class MTableInterfaceWidget(QWidget):
         if self._check_rows(rows):
             for row in rows:
                 items = self.tableView.model().takeRow(row)
-                self.tableView.model().insertRow(row-1, items)
+                self.tableView.model().insertRow(row - 1, items)
 
     def _downRow(self):
         '''Moves the currently selected row(s) down one.'''
@@ -550,10 +550,10 @@ class MTableInterfaceWidget(QWidget):
         if self._check_rows(rows):
             for row in rows:
                 items = self.tableView.model().takeRow(row)
-                self.tableView.model().insertRow(row+1, items)
+                self.tableView.model().insertRow(row + 1, items)
 
     def _duplicateRow(self):
-        '''duplicates the selected row(s) into the table after the row(s)'''
+        '''Duplicates the selected row(s) into the table after the row(s).'''
 
         # find the selected row(s)
         indices = self.tableView.selectionModel().selectedIndexes()
@@ -564,19 +564,19 @@ class MTableInterfaceWidget(QWidget):
             model = self.tableView.model()
             for row in rows:
                 row_data = []
-                for column in range(0, model.columnCount()):
+                for column in range(model.columnCount()):
                     value = model.item(row, column).data(Qt.DisplayRole)
                     item = QStandardItem()
                     item.setData(value, Qt.DisplayRole)
                     row_data.append(item)
-                model.insertRow(row+1, row_data)
+                model.insertRow(row + 1, row_data)
 
     def _check_rows(self, rows, only_one=False):
         '''Checks how many items are in ``rows`` and alerts user if not right.
 
-        Checks that the number of indices in ``rows``, alerts the user with a
-        popup box if their are no items in ``rows``. Alternatively if the kwarg
-        ``only_one`` is ``True`` also alerts users that to many rows are
+        Checks the number of indices in ``rows``, alerts the user with a
+        popup box if there are no items in ``rows``. Alternatively if the kwarg
+        ``only_one`` is ``True`` also alerts users that too many rows are
         selected. Returns ``True`` if the right number(s) of items are in
         ``rows`` otherwise it returns ``False``.
 
@@ -637,7 +637,7 @@ class MFunctionTableInterfaceWidget(MTableInterfaceWidget):
     Parameters
     ----------
     function : func
-        The function asociated with this table input.
+        The function associated with this table input.
     *args/**kwargs : various
         args and kwargs to be passed to the parent
         ``mily.MTableInterfaceWidget``.

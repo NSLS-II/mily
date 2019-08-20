@@ -26,10 +26,10 @@ class SimpleFunctionWidget(MFunctionTableInterfaceWidget):
 
     ..code-block:: python
 
-        from mily.table_interface_examples import SimplefunctionWidget
+        from mily.table_interface_examples import SimpleFunctionWidget
         from PyQt5.QtWidgets import QApplication
         app = QApplication([])
-        window = SimplefunctionWidget('simple_function')
+        window = SimpleFunctionWidget('simple_function')
         window.show()
         app.exec_()
 

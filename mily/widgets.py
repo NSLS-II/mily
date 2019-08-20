@@ -69,18 +69,18 @@ class MFSpin(QtWidgets.QDoubleSpinBox):
 class MComboBox(QtWidgets.QComboBox):
     '''A ``PyQt5.QtWidgets.QComboBox`` that matches the ``mily`` syntax.
 
-    This adds ``get_parameters(self)`` and ``set_default(self,v)`` methods that
+    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods that
     are common for all ``mily`` widgets to make the consumer code easier. It
     also adds a ``name`` attribute and ``__init__`` argument.
 
     Parameters
     ----------
-    args: various
+    args : various
         args passed to ``PyQt5.QtWidgets.QComboBox.__init__(...)``.
     items : dict, optional
         optional dict mapping a 'display name' to items to include in the
         dropdown list.
-    kwargs: various
+    kwargs : various
         kwargs passed to ``pyQt5.QtWidgets.QComboBox.__init__(...)``.
     '''
 
@@ -92,11 +92,11 @@ class MComboBox(QtWidgets.QComboBox):
             self.setItemData(i, val)
 
     def get_parameters(self):
-        '''returns a ``{name: currentData}`` dictionary. '''
+        '''Returns a ``{name: currentData}`` dictionary. '''
         return {self._name: self.currentData()}
 
     def set_default(self, currentData):
-        '''set ``self.currentData`` to ``currentData``.'''
+        '''Sets ``self.currentData`` to ``currentData``.'''
         if currentData is not None:
             index = self.findData(currentData)
             self.setCurrentIndex(index)
@@ -105,16 +105,16 @@ class MComboBox(QtWidgets.QComboBox):
 class MCheckBox(QtWidgets.QCheckBox):
     '''A ``PyQt5.QtWidgets.QCheckBox`` that matches the ``mily`` syntax.
 
-    This adds ``get_parameters(self)`` and ``set_default(self,v)`` methods that
+    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods that
     are common for all ``mily`` widgets to make the consumer code easier. It
     also adds a ``name`` attribute and ``__init__`` argument.
 
     Parameters
     ----------
-    args: various
+    args : various
         args passed to ``PyQt5.QtWidgets.QCheckBox.__init__(...)``.
-    kwargs: various
-        kwargs passed to ``pyQt5.QtWidgets.QCheckBox.__init__(...)``.
+    kwargs : various
+        kwargs passed to ``PyQt5.QtWidgets.QCheckBox.__init__(...)``.
     '''
 
     def __init__(self, name, **kwargs):
@@ -122,11 +122,11 @@ class MCheckBox(QtWidgets.QCheckBox):
         self._name = name
 
     def get_parameters(self):
-        '''returns a ``{name: isChecked}`` dictionary. '''
+        '''Returns a ``{name: isChecked}`` dictionary.'''
         return {self._name: self.isChecked()}
 
     def set_default(self, checkState):
-        '''set ``self.isChecked`` to ``checkState``.'''
+        '''Sets ``self.isChecked`` to ``checkState``.'''
         if checkState is not None:
             self.setChecked(checkState)
 
@@ -134,7 +134,7 @@ class MCheckBox(QtWidgets.QCheckBox):
 class MSelector(QtWidgets.QGroupBox):
     '''A widget that displays a list of objects with 'checkboxes'.
 
-    This adds ``get_parameters(self)`` and ``set_default(self,v)`` methods that
+    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods that
     are common for all ``mily`` widgets to make the consumer code easier. It
     also adds a ``name`` attribute and ``__init__`` argument. It results in a
     vertical list of objects (defined in the 'items' arg) with a corresponding
@@ -142,15 +142,15 @@ class MSelector(QtWidgets.QGroupBox):
 
     Parameters
     ----------
-    name: str
+    name : str
         name of the widget to be stored in ``self._name``
     option_list : list
         list of items to include checkboxes for.
     vertical : bool, optional
         optional boolean that indicates if the list should be displayed
         vertically (True) or horizontally (False). default is True.
-    kwargs: various
-        kwargs passed to ``pyQt5.QtWidgets.QComboBox.__init__(...)``.
+    kwargs : various
+        kwargs passed to ``PyQt5.QtWidgets.QGroupBox.__init__(...)``.
     '''
 
     def __init__(self, name, option_list, vertical=True, **kwargs):
