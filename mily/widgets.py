@@ -1,5 +1,4 @@
 from qtpy import QtWidgets
-from ophyd import Device
 import datetime
 from pyqtgraph.parametertree import parameterTypes as pTypes
 
@@ -69,9 +68,9 @@ class MFSpin(QtWidgets.QDoubleSpinBox):
 class MComboBox(QtWidgets.QComboBox):
     '''A ``PyQt5.QtWidgets.QComboBox`` that matches the ``mily`` syntax.
 
-    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods that
-    are common for all ``mily`` widgets to make the consumer code easier. It
-    also adds a ``name`` attribute and ``__init__`` argument.
+    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
+    that are common for all ``mily`` widgets to make the consumer code easier.
+    It also adds a ``name`` attribute and ``__init__`` argument.
 
     Parameters
     ----------
@@ -105,9 +104,9 @@ class MComboBox(QtWidgets.QComboBox):
 class MCheckBox(QtWidgets.QCheckBox):
     '''A ``PyQt5.QtWidgets.QCheckBox`` that matches the ``mily`` syntax.
 
-    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods that
-    are common for all ``mily`` widgets to make the consumer code easier. It
-    also adds a ``name`` attribute and ``__init__`` argument.
+    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
+    that are common for all ``mily`` widgets to make the consumer code easier.
+    It also adds a ``name`` attribute and ``__init__`` argument.
 
     Parameters
     ----------
@@ -134,11 +133,11 @@ class MCheckBox(QtWidgets.QCheckBox):
 class MSelector(QtWidgets.QGroupBox):
     '''A widget that displays a list of objects with 'checkboxes'.
 
-    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods that
-    are common for all ``mily`` widgets to make the consumer code easier. It
-    also adds a ``name`` attribute and ``__init__`` argument. It results in a
-    vertical list of objects (defined in the 'items' arg) with a corresponding
-    checkbox for each item. It returns a list of checked items.
+    This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
+    that are common for all ``mily`` widgets to make the consumer code easier.
+    It also adds a ``name`` attribute and ``__init__`` argument. It results in
+    a vertical list of objects (defined in the 'items' arg) with a
+    corresponding checkbox for each item. It returns a list of checked items.
 
     Parameters
     ----------
@@ -186,10 +185,7 @@ class MSelector(QtWidgets.QGroupBox):
         # value is a list of detectors of the form [det1, det2, ...]
         if value is not None:
             for button in self.button_group.buttons():
-                if button.item in value:
-                    button.setChecked(True)
-                else:
-                    button.setChecked(False)
+                button.setChecked(button.item in value)
 
 
 class MDateTime(QtWidgets.QDateTimeEdit):
