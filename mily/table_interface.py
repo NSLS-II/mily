@@ -351,14 +351,16 @@ class MTableInterfaceWidget(QWidget):
                 self.prefixLayout.addLayout(vstacked_label(name, widget))
             self.mainLayout.addLayout(self.prefixLayout)
 
-        # create the table view
-        self.tableView = MTableInterfaceView(self, self._name + '_view',
-                                             editor_map=self.table_editor_map,
-                                             delegate=delegate)
-        self.mainLayout.addWidget(self.tableView)
+        # if any table parameters are specifed in table_editor_map add them
+        if self.table_editor_map:
+            # create the table view
+            self.tableView = MTableInterfaceView(
+                self, self._name + '_view', editor_map=self.table_editor_map,
+                delegate=delegate)
+            self.mainLayout.addWidget(self.tableView)
 
-        # enable sorting of the table
-        self.tableView.setSortingEnabled(True)
+            # enable sorting of the table
+            self.tableView.setSortingEnabled(True)
 
         # if any global parameters are specifed in suffix_editor_map add them
         if self.suffix_editor_map:
@@ -372,35 +374,35 @@ class MTableInterfaceWidget(QWidget):
         # load the default_entries
         self.set_default(self.default_parameters)
 
-        # create and add buttons
+        # create and add table buttons if any table values exist
         self.btnLayout = QHBoxLayout()
+        if self.table_editor_map:
+            self.addRowBtn = QPushButton('+', self)
+            self.addRowBtn.setToolTip('inserts a blank row(s) after the '
+                                      'selected row(s)')
+            self.addRowBtn.clicked.connect(self._addRow)
+            self.btnLayout.addWidget(self.addRowBtn)
 
-        self.addRowBtn = QPushButton('+', self)
-        self.addRowBtn.setToolTip('inserts a blank row(s) after the selected '
-                                  'row(s)')
-        self.addRowBtn.clicked.connect(self._addRow)
-        self.btnLayout.addWidget(self.addRowBtn)
+            self.delRowBtn = QPushButton('-', self)
+            self.delRowBtn.setToolTip('deletes the selected row(s)')
+            self.delRowBtn.clicked.connect(self._delRow)
+            self.btnLayout.addWidget(self.delRowBtn)
 
-        self.delRowBtn = QPushButton('-', self)
-        self.delRowBtn.setToolTip('deletes the selected row(s)')
-        self.delRowBtn.clicked.connect(self._delRow)
-        self.btnLayout.addWidget(self.delRowBtn)
+            self.upRowBtn = QPushButton('up', self)
+            self.upRowBtn.setToolTip('move currently selected row down')
+            self.upRowBtn.clicked.connect(self._upRow)
+            self.btnLayout.addWidget(self.upRowBtn)
 
-        self.upRowBtn = QPushButton('up', self)
-        self.upRowBtn.setToolTip('move currently selected row down')
-        self.upRowBtn.clicked.connect(self._upRow)
-        self.btnLayout.addWidget(self.upRowBtn)
+            self.downRowBtn = QPushButton('down', self)
+            self.downRowBtn.setToolTip('move currently selected row down')
+            self.downRowBtn.clicked.connect(self._downRow)
+            self.btnLayout.addWidget(self.downRowBtn)
 
-        self.downRowBtn = QPushButton('down', self)
-        self.downRowBtn.setToolTip('move currently selected row down')
-        self.downRowBtn.clicked.connect(self._downRow)
-        self.btnLayout.addWidget(self.downRowBtn)
-
-        self.duplicateRowBtn = QPushButton('duplicate', self)
-        self.duplicateRowBtn.setToolTip('inserts a duplicate of the selected '
-                                        'row(s)')
-        self.duplicateRowBtn.clicked.connect(self._duplicateRow)
-        self.btnLayout.addWidget(self.duplicateRowBtn)
+            self.duplicateRowBtn = QPushButton('duplicate', self)
+            self.duplicateRowBtn.setToolTip('inserts a duplicate of the '
+                                            'selected row(s)')
+            self.duplicateRowBtn.clicked.connect(self._duplicateRow)
+            self.btnLayout.addWidget(self.duplicateRowBtn)
 
         # create the layout and add the widgets
         self.mainLayout.addLayout(self.btnLayout)
@@ -436,7 +438,8 @@ class MTableInterfaceWidget(QWidget):
                 editor.set_default(value)
 
         # ask self.tableView to set other parameters
-        self.tableView.set_default(parameters)
+        if self.table_editor_map:
+            self.tableView.set_default(parameters)
 
     def get_parameters(self):
         '''Return the entire data from the table.
@@ -452,7 +455,10 @@ class MTableInterfaceWidget(QWidget):
         parameters.append(self.get_prefix_parameters()[self._name])
 
         # add table dicts
-        view_list = self.tableView.get_parameters()[self.tableView._name]
+        if self.table_editor_map:
+            view_list = self.tableView.get_parameters()[self.tableView._name]
+        else:
+            view_list = {}
         parameters.extend(view_list)
 
         # add suffix dict
@@ -503,7 +509,11 @@ class MTableInterfaceWidget(QWidget):
         parameters  : dict
             A dictionary mapping kwargs to values.
         '''
-        params = self.tableView.get_row_parameters(row)[self.tableView._name]
+        if self.table_editor_map:
+            params = self.tableView.get_row_parameters(
+                row)[self.tableView._name]
+        else:
+            params = {}
         return {self._name: params}
 
     def _addRow(self):

@@ -38,8 +38,6 @@ class MISpin(QtWidgets.QSpinBox):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self._name = name
-        self.setKeyboardTracking(False)
-        self.setRange(-2**16, 2**16)
 
     def get_parameters(self):
         return {self._name: self.value()}
@@ -53,9 +51,6 @@ class MFSpin(QtWidgets.QDoubleSpinBox):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self._name = name
-        self.setDecimals(3)
-        self.setKeyboardTracking(False)
-        self.setRange(-2**16, 2**16)
 
     def get_parameters(self):
         return {self._name: self.value()}
