@@ -96,9 +96,44 @@ class MTableItemDelegate(QStyledItemDelegate):
         the data from the editor. It then writes the data to the model,
         associating it with the "display" role for consistency with the
         ``self.setEditorData(...)`` method.
+
+        It further calls the ``model.update_coupled_parameters`` method to
+        see if there are any coupled parameters that also need to be updated.
+        This method takes in a dict mapping column names to new values, a dict
+        mapping column_names to old values for the entire row and the row
+        number as inputs and is expected to return a dict mapping column names
+        to new values for any columns to update in the given row. If
+        ``model.update_coupled_parameters`` is ``None`` it just updates the
+        value defined by index.
         '''
-        model.setData(index, editor.get_parameters()[editor._name],
-                      Qt.DisplayRole)
+
+        column_names = list(self.parent().editor_map.keys())
+
+        # create a dict mapping the column_name to the value to be updated
+        new_value = editor.get_parameters()[editor._name]
+        requested_parameters = {column_names[index.column()]: new_value}
+        row = index.row()
+
+        if model.update_coupled_parameters:
+            # step through each column adding the value to parameters
+            current_parameters = {}
+            for column in range(0, model.columnCount()):
+                item = model.item(row, column)
+                if item:
+                    value = item.data(Qt.DisplayRole)
+                else:
+                    value = None
+                current_parameters[column_names[column]] = value
+            # call the function to get a new list of coupled values to update.
+            new_parameters = model.update_coupled_parameters(
+                requested_parameters, current_parameters, index.row())
+
+            for column_name, value in new_parameters.items():
+                column = column_names.index(column_name)
+                model.item(row, column).setData(value, Qt.DisplayRole)
+
+        else:
+            model.setData(index, new_value, Qt.DisplayRole)
 
     def createEditor(self, parent, option, index):
         '''Creates the editor based on ``self.editor_map``.
@@ -142,13 +177,31 @@ class MTableInterfaceView(QTableView):
     model : QStandardItemModel, optional
         The ``PyQt5.QtGui.QStandardItemModel`` to be associated with the
         class, the default is ``PyQt5.QtGui.QStandardItemModel.
+    update_coupled_parameters : func, optional
+        An optional function that is called every time the data in the model is
+        updated. It must have the structure:
+
+        ..code-block:: python
+
+            def update_coupled_parameters(requested_parameters,
+                                          current_parameters,
+                                          row)
+            ...
+
+            return new_parameters
+
+        where: ``requested_parameters`` is a dict that maps column names to new
+        requested values, current_parameters is a dict mapping column names to
+        the current values and row is the model row index (as an int) that is
+        to be updated. This function should return a dict mapping column names
+        to values that should be updated.
     '''
 
     def __init__(self, parent, name, *args, editor_map={},
                  delegate=MTableItemDelegate, model=QStandardItemModel,
-                 **kwargs):
+                 update_coupled_parameters=None, **kwargs):
         self._name = name
-        self.editor_map=editor_map
+        self.editor_map = editor_map
         super().__init__(*args, parent=parent, **kwargs)
         # Apply some style options
         self.horizontalHeader().setDefaultAlignment(Qt.AlignHCenter)
@@ -158,6 +211,10 @@ class MTableInterfaceView(QTableView):
                                       editor_map=self.editor_map))
         # set the model and set column headers from editor_map if possible
         self.setModel(model(self))
+        # add the function for dealing with coupled parameters.
+        setattr(self.model(),
+                'update_coupled_parameters',
+                update_coupled_parameters)
         if self.editor_map:
             column_names = list(self.editor_map.keys())
             self.model().setHorizontalHeaderLabels(column_names)
@@ -207,10 +264,8 @@ class MTableInterfaceView(QTableView):
         a row that maps the column header to it's value. This follows the
         ``mily.widget`` API.
         '''
-        column_names = list(self.editor_map.keys())
-        model = self.model()
         parameters = []
-        for row in range(0, model.rowCount()):
+        for row in range(0, self.model().rowCount()):
             parameters.append(self.get_row_parameters(row)[self._name])
         return {self._name: parameters}
 
@@ -239,7 +294,7 @@ class MTableInterfaceView(QTableView):
             if item:
                 value = item.data(Qt.DisplayRole)
             else:
-                value=None
+                value = None
             parameters[column_names[column]] = value
 
         return {self._name: parameters}
@@ -314,8 +369,9 @@ class MTableInterfaceWidget(QWidget):
     def __init__(self, name, *args, delegate=MTableItemDelegate,
                  prefix_editor_map={}, table_editor_map={},
                  suffix_editor_map={}, default_parameters=[],
-                 title='Default Title', geometry=(100, 100, 800, 300),
-                 mainLayoutString=None, **kwargs):
+                 update_coupled_parameters=None, title='Default Title',
+                 geometry=(100, 100, 800, 300), mainLayoutString=None,
+                 **kwargs):
         super().__init__(*args, **kwargs)
         self._name = name
         self.prefix_editor_map = prefix_editor_map
@@ -326,9 +382,9 @@ class MTableInterfaceWidget(QWidget):
         self.geometry = geometry
         self.mainLayoutString = mainLayoutString
         self.setAutoFillBackground(True)
-        self._initUI(delegate)
+        self._initUI(delegate, update_coupled_parameters)
 
-    def _initUI(self, delegate):
+    def _initUI(self, delegate, update_coupled_parameters):
 
         # set the title, location and size of the Widget
         self.setWindowTitle(self.title)
@@ -356,7 +412,8 @@ class MTableInterfaceWidget(QWidget):
             # create the table view
             self.tableView = MTableInterfaceView(
                 self, self._name + '_view', editor_map=self.table_editor_map,
-                delegate=delegate)
+                delegate=delegate,
+                update_coupled_parameters=update_coupled_parameters)
             self.mainLayout.addWidget(self.tableView)
 
             # enable sorting of the table
@@ -466,7 +523,6 @@ class MTableInterfaceWidget(QWidget):
 
         return {self._name: parameters}
 
-
     def get_prefix_parameters(self):
         '''Returns the data from the prefix widgets.
 
@@ -522,11 +578,18 @@ class MTableInterfaceWidget(QWidget):
         indices = self.tableView.selectionModel().selectedIndexes()
         rows = [index.row() for index in indices]
         rows.sort(reverse=True)
+        empty_row=[]
+        for column in range(self.tableView.model().columnCount()):
+            item = QStandardItem()
+            item.setData(None, Qt.DisplayRole)
+            empty_row.append(item)
         if rows:  # add an empty row after the last selected row
-            self.tableView.model().insertRow(rows[0] + 1, [])
+            self.tableView.model().insertRow(rows[0] + 1, empty_row)
         else:  # If no rows selected add row at end of table
             end_row = self.tableView.model().rowCount()
-            self.tableView.model().insertRow(end_row, [])
+            self.tableView.model().insertRow(end_row, empty_row)
+        self._check_table_after_row_manipulation()
+
 
     def _delRow(self):
         '''Deletes the selected row(s).'''
@@ -536,6 +599,8 @@ class MTableInterfaceWidget(QWidget):
         if self._check_rows(rows):
             for row in rows:
                 self.tableView.model().takeRow(row)
+        self._check_table_after_row_manipulation()
+
 
     def _upRow(self):
         '''Moves the currently selected row(s) up one.'''
@@ -548,6 +613,8 @@ class MTableInterfaceWidget(QWidget):
             for row in rows:
                 items = self.tableView.model().takeRow(row)
                 self.tableView.model().insertRow(row - 1, items)
+        self._check_table_after_row_manipulation()
+
 
     def _downRow(self):
         '''Moves the currently selected row(s) down one.'''
@@ -561,6 +628,8 @@ class MTableInterfaceWidget(QWidget):
             for row in rows:
                 items = self.tableView.model().takeRow(row)
                 self.tableView.model().insertRow(row + 1, items)
+        self._check_table_after_row_manipulation()
+
 
     def _duplicateRow(self):
         '''Duplicates the selected row(s) into the table after the row(s).'''
@@ -580,6 +649,7 @@ class MTableInterfaceWidget(QWidget):
                     item.setData(value, Qt.DisplayRole)
                     row_data.append(item)
                 model.insertRow(row + 1, row_data)
+        self._check_table_after_row_manipulation()
 
     def _check_rows(self, rows, only_one=False):
         '''Checks how many items are in ``rows`` and alerts user if not right.
@@ -632,6 +702,27 @@ class MTableInterfaceWidget(QWidget):
             warning.exec_()
 
         return Ok
+
+    def _check_table_after_row_manipulation(self):
+        '''Updates coupled arguments after row manipulation.
+
+        This method runs all of the rows in the table through the method
+        ``self.tableView.model().update_coupled_parameters`` to ensure that
+        the new arrangment is ok, it will update any values that are not.
+        '''
+        if self.table_editor_map:  # check that a table actually exists
+            # step through each row and check it
+            model = self.tableView.model()
+            column_names = list(self.table_editor_map.keys())
+            for row in range(model.rowCount()):
+                current_parameters = self.get_row_parameters(row)[self._name]
+                requested_parameters = {}
+                new_parameters = model.update_coupled_parameters(
+                    requested_parameters, current_parameters, row)
+                for column_name, value in new_parameters.items():
+                    if value != current_parameters[column_name]:
+                        column = column_names.index(column_name)
+                        model.item(row, column).setData(value, Qt.DisplayRole)
 
 
 class MFunctionTableInterfaceWidget(MTableInterfaceWidget):
