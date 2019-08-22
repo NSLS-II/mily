@@ -1,3 +1,4 @@
+from collection import OrderedDict
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QTableView, QWidget, QLabel, QStyledItemDelegate,
@@ -344,14 +345,14 @@ class MTableInterfaceWidget(QWidget):
         The name of the widget, stored on self._name
     *args/**kwargs : various
         args and kwargs to be passed to ``PyQt5.QtWidgets.QWidget``.
-    prefix_editor_map : dict, optional
-        A dictionary that maps parameter names to editor widgets, for
+    prefix_editor_map : OrderedDict, optional
+        An OrderedDict that maps parameter names to editor widgets, for
         parameters that are to be displayed above the table.
-    table_editor_map : dict, optional
-        A dictionary that maps column names to editor widgets, for
+    table_editor_map : OrderedDict, optional
+        An OrderedDict that maps column names to editor widgets, for
         parameters that are to be displayed in the table.
-    suffix_editor_map : dict, optional
-        A dictionary that maps parameter names to editor widgets, for
+    suffix_editor_map : OrderedDict, optional
+        An OrderedDict that maps parameter names to editor widgets, for
         parameters that are to be displayed below the table.
     default_parameters : [dicts]
         A list of dicts following the structure defined above that contain
@@ -367,8 +368,10 @@ class MTableInterfaceWidget(QWidget):
     '''
 
     def __init__(self, name, *args, delegate=MTableItemDelegate,
-                 prefix_editor_map={}, table_editor_map={},
-                 suffix_editor_map={}, default_parameters=[],
+                 prefix_editor_map=OrderedDict({}),
+                 table_editor_map=OrderedDict({}),
+                 suffix_editor_map=OrderedDict({}),
+                 default_parameters=[],
                  update_coupled_parameters=None, title='Default Title',
                  geometry=(100, 100, 800, 300), mainLayoutString=None,
                  **kwargs):
@@ -710,7 +713,8 @@ class MTableInterfaceWidget(QWidget):
         ``self.tableView.model().update_coupled_parameters`` to ensure that
         the new arrangment is ok, it will update any values that are not.
         '''
-        if self.table_editor_map:  # check that a table actually exists
+        if (self.table_editor_map and
+            self.tableView.model().update_coupled_parameters):
             # step through each row and check it
             model = self.tableView.model()
             column_names = list(self.table_editor_map.keys())
