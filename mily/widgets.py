@@ -177,7 +177,7 @@ class MSelector(QtWidgets.QGroupBox):
         return {self._name: item_list}
 
     def set_default(self, value):
-        # value is a list of detectors of the form [det1, det2, ...]
+        # value is list of python values or objects.
         if value is not None:
             for button in self.button_group.buttons():
                 button.setChecked(button.item in value)
