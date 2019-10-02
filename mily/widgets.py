@@ -35,7 +35,7 @@ class MText(QtWidgets.QLineEdit):
 
 
 class MISpin(QtWidgets.QSpinBox):
-    def __init__(self, name, minimum=-2**16,maximum=2**16, **kwargs):
+    def __init__(self, name, minimum=-2**16, maximum=2**16, **kwargs):
         super().__init__(minimum=minimum, maximum=maximum, **kwargs)
         self._name = name
 
