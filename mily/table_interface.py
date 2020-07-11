@@ -1,9 +1,9 @@
-from collection import OrderedDict
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QTableView, QWidget, QLabel, QStyledItemDelegate,
-                             QHBoxLayout, QVBoxLayout, QMessageBox,
-                             QPushButton)
+from collections import OrderedDict
+from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (QTableView, QWidget, QLabel, QStyledItemDelegate,
+                            QHBoxLayout, QVBoxLayout, QMessageBox,
+                            QPushButton)
 from .widgets import MText, vstacked_label
 
 
