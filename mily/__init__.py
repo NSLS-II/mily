@@ -22,7 +22,7 @@ def _create_qApp():
         if app is None:
             # check for DISPLAY env variable on X11 build of Qt
             try:
-                from PyQt5 import QtX11Extras
+                from PyQt5 import QtX11Extras  # noqa: F401
                 del QtX11Extras
                 is_x11_build = True
             except ImportError:
