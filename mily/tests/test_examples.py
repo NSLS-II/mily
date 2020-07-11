@@ -8,6 +8,6 @@ def test_one_plus_one_is_two():
 
 def test_gui(qtbot):
     """Trivial PyQt test"""
-    wd = QWidget()
+    wd =QWidget()
     qtbot.addWidget(wd)
     wd.show()
