@@ -2,7 +2,6 @@ import time
 from functools import wraps
 import logging
 from qtpy.QtCore import Signal, QThread, QEvent, QCoreApplication, QObject
-# from qtpy.QtGui import QApplication
 from qtpy.QtWidgets import QApplication
 
 
