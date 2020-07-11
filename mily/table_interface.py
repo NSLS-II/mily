@@ -396,7 +396,7 @@ class MTableInterfaceWidget(QWidget):
 
         # create a QLabel which describes the table
         if not self.mainLayoutString:
-            self.mainLayoutString = (f'')
+            self.mainLayoutString = ""
 
         self.mainLabel = QLabel(self.mainLayoutString)
         self.mainLayout.addWidget(self.mainLabel)
@@ -581,7 +581,7 @@ class MTableInterfaceWidget(QWidget):
         indices = self.tableView.selectionModel().selectedIndexes()
         rows = [index.row() for index in indices]
         rows.sort(reverse=True)
-        empty_row=[]
+        empty_row = []
         for column in range(self.tableView.model().columnCount()):
             item = QStandardItem()
             item.setData(None, Qt.DisplayRole)
@@ -593,7 +593,6 @@ class MTableInterfaceWidget(QWidget):
             self.tableView.model().insertRow(end_row, empty_row)
         self._check_table_after_row_manipulation()
 
-
     def _delRow(self):
         '''Deletes the selected row(s).'''
         indices = self.tableView.selectionModel().selectedIndexes()
@@ -603,7 +602,6 @@ class MTableInterfaceWidget(QWidget):
             for row in rows:
                 self.tableView.model().takeRow(row)
         self._check_table_after_row_manipulation()
-
 
     def _upRow(self):
         '''Moves the currently selected row(s) up one.'''
@@ -618,7 +616,6 @@ class MTableInterfaceWidget(QWidget):
                 self.tableView.model().insertRow(row - 1, items)
         self._check_table_after_row_manipulation()
 
-
     def _downRow(self):
         '''Moves the currently selected row(s) down one.'''
         last_row = self.tableView.model().rowCount()-1
@@ -632,7 +629,6 @@ class MTableInterfaceWidget(QWidget):
                 items = self.tableView.model().takeRow(row)
                 self.tableView.model().insertRow(row + 1, items)
         self._check_table_after_row_manipulation()
-
 
     def _duplicateRow(self):
         '''Duplicates the selected row(s) into the table after the row(s).'''
@@ -713,8 +709,7 @@ class MTableInterfaceWidget(QWidget):
         ``self.tableView.model().update_coupled_parameters`` to ensure that
         the new arrangment is ok, it will update any values that are not.
         '''
-        if (self.table_editor_map and
-            self.tableView.model().update_coupled_parameters):
+        if (self.table_editor_map and self.tableView.model().update_coupled_parameters):
             # step through each row and check it
             model = self.tableView.model()
             column_names = list(self.table_editor_map.keys())
