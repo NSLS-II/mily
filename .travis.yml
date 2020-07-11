@@ -13,16 +13,19 @@ global:
   - NUMPY=1.17
   - BUILD_DOCS=false
   - SUBMIT_CODECOV=false
+  - FLAKE_8=false
 
 jobs:
   fast_finish: true
   include:
+    - python: 3.8  # This build will run only 'flake8'
+      env: FLAKE_8=true
     - python: 3.7
       env: QT="pyqt5"
     - python: 3.7
       env: QT="pyside2"
     - python: 3.8
-      env: BUILD_DOCS=true SUBMIT_CODECOV=true QT="pyqt5"
+      env: QT="pyqt5" BUILD_DOCS=true SUBMIT_CODECOV=true
     - python: 3.8
       env: QT="pyside2"
     - os: osx
@@ -30,15 +33,22 @@ jobs:
       env: TRAVIS_PYTHON_VERSION=3.7 QT="pyqt5"
     - os: osx
       language: generic
-      env: TRAVIS_PYTHON_VERSION=3.8 QT="pyqt5"
+      env: TRAVIS_PYTHON_VERSION=3.7 QT="pyside2"
     - os: osx
       language: generic
-      env: TRAVIS_PYTHON_VERSION=3.7 QT="pyside2"
+      env: TRAVIS_PYTHON_VERSION=3.8 QT="pyqt5"
     - os: osx
       language: generic
       env: TRAVIS_PYTHON_VERSION=3.8 QT="pyside2"
 
 before_install:
+  - if [ $FLAKE_8 == 'true' ]; then
+      pip install flake8;
+      flake8 .;
+      let res=$?;
+      echo "The project code was verified with 'flake8'. Exit code ($res).";
+      exit $res;
+    fi
   - |
     set -e
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
@@ -76,8 +86,6 @@ install:
   - pip list
 
 script:
-  - flake8  # Enforce code style
-  # - pytest  # Run the tests and check for test coverage.
   - coverage run -m pytest  # Run the tests and check for test coverage.
   - coverage report -m -i  # Generate test coverage report.
   - |
