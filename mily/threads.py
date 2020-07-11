@@ -4,7 +4,7 @@ import logging
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 
-log = lambda message, level: logging.log(level, message)
+log = lambda level, message: logging.log(level, message)
 log_error = lambda *_: None  # callback for unhandled exceptions in threads
 show_busy = lambda *_: None  # callback to indicate busy
 show_ready = lambda *_: None  # callback to indicate ready
