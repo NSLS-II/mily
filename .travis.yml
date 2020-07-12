@@ -1,8 +1,8 @@
 language: python
 sudo: false
 
-services:
-  - xvfb
+# services:
+#   - xvfb
 
 cache:
   directories:
@@ -55,6 +55,13 @@ before_install:
   - |
     set -e
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      # Install 'herbstluftwm' (on Linux only)
+      sudo apt-get update
+      sudo apt-get install -y xvfb herbstluftwm
+    fi
+  - |
+    set -e
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         arch="Linux"
     elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
         arch="MacOSX"
@@ -70,6 +77,16 @@ before_install:
     export CONDARC=ci/condarc
 
 install:
+
+  - |
+    set -e
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      # Run 'xvfb' (on Linux only)
+      export DISPLAY=:99.0
+      sudo /sbin/start-stop-daemon --start --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX +render -noreset
+      # sudo /sbin/start-stop-daemon --start --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +render -noreset
+      sleep 3
+    fi
   - conda create -y -n testenv python=$TRAVIS_PYTHON_VERSION
   - conda activate testenv
   - |
@@ -89,6 +106,15 @@ install:
   - pip install .
   - conda list
   - pip list
+
+before_script:
+  - |
+    set -e
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      # Run 'herbstluftwm' (on Linux only)
+      herbstluftwm &
+      sleep 1
+    fi
 
 script:
   - coverage run -m pytest  # Run the tests and check for test coverage.
