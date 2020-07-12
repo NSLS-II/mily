@@ -1,3 +1,6 @@
+# This file contains trivial tests that verify that
+#   pytest-qt and Windows Manager are working correctly
+
 from qtpy.QtWidgets import QWidget, QLineEdit
 from qtpy import PYQT5
 
