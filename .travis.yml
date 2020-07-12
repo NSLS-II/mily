@@ -119,7 +119,21 @@ script:
     set -e
     if [ $BUILD_DOCS == 'true' ]; then
       make -C docs html  # Build the documentation.
+      # Disable Jekyll theme
+      touch docs/build/html/.nojekyll
     fi
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep_history: true
+  local_dir: "docs/build/html"
+  on:
+    branch: master
+    # The following conditions guarantees that the docs will be deployed only if the build
+    #   is run in the main repository (this may easily changed)
+    condition: $BUILD_DOCS == true && $TRAVIS_REPO_SLUG == "NSLS-II/mily"
 
 after_success:
   - if [ $SUBMIT_CODECOV == 'true' ]; then codecov; fi;
