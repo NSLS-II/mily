@@ -61,7 +61,7 @@ class MFSpin(QtWidgets.QDoubleSpinBox):
 
 
 class MComboBox(QtWidgets.QComboBox):
-    """A ``PyQt5.QtWidgets.QComboBox`` that matches the ``mily`` syntax.
+    """A ``qtpy.QtWidgets.QComboBox`` that matches the ``mily`` syntax.
 
     This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
     that are common for all ``mily`` widgets to make the consumer code easier.
@@ -70,12 +70,12 @@ class MComboBox(QtWidgets.QComboBox):
     Parameters
     ----------
     args : various
-        args passed to ``PyQt5.QtWidgets.QComboBox.__init__(...)``.
+        args passed to ``qtpy.QtWidgets.QComboBox.__init__(...)``.
     items : dict, optional
         optional dict mapping a 'display name' to items to include in the
         dropdown list.
     kwargs : various
-        kwargs passed to ``pyQt5.QtWidgets.QComboBox.__init__(...)``.
+        kwargs passed to ``qtpy.QtWidgets.QComboBox.__init__(...)``.
     """
 
     def __init__(self, name, items={}, **kwargs):
@@ -97,7 +97,7 @@ class MComboBox(QtWidgets.QComboBox):
 
 
 class MCheckBox(QtWidgets.QCheckBox):
-    """A ``PyQt5.QtWidgets.QCheckBox`` that matches the ``mily`` syntax.
+    """A ``qtpy.QtWidgets.QCheckBox`` that matches the ``mily`` syntax.
 
     This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
     that are common for all ``mily`` widgets to make the consumer code easier.
@@ -106,9 +106,9 @@ class MCheckBox(QtWidgets.QCheckBox):
     Parameters
     ----------
     args : various
-        args passed to ``PyQt5.QtWidgets.QCheckBox.__init__(...)``.
+        args passed to ``qtpy.QtWidgets.QCheckBox.__init__(...)``.
     kwargs : various
-        kwargs passed to ``PyQt5.QtWidgets.QCheckBox.__init__(...)``.
+        kwargs passed to ``qtpy.QtWidgets.QCheckBox.__init__(...)``.
     """
 
     def __init__(self, name, **kwargs):
@@ -144,7 +144,7 @@ class MSelector(QtWidgets.QGroupBox):
         optional boolean that indicates if the list should be displayed
         vertically (True) or horizontally (False). default is True.
     kwargs : various
-        kwargs passed to ``PyQt5.QtWidgets.QGroupBox.__init__(...)``.
+        kwargs passed to ``qtpy.QtWidgets.QGroupBox.__init__(...)``.
     """
 
     def __init__(self, name, option_list, vertical=True, **kwargs):

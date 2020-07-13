@@ -171,13 +171,13 @@ class MTableInterfaceView(QTableView):
 
     Parameters:
     *args/**kwargs : various
-        args and kwargs to be passed to ``PyQt5.QtWidgets.QTableView``.
+        args and kwargs to be passed to ``qtpy.QtWidgets.QTableView``.
     delegate : QitemDelegate, optional
-        The ``PyQt5.QItemDelegate`` to be associated with the class, default is
+        The ``qtpy.QItemDelegate`` to be associated with the class, default is
         the ``MTableItemDelegate``.
     model : QStandardItemModel, optional
-        The ``PyQt5.QtGui.QStandardItemModel`` to be associated with the
-        class, the default is ``PyQt5.QtGui.QStandardItemModel.
+        The ``qtpy.QtGui.QStandardItemModel`` to be associated with the
+        class, the default is ``qtpy.QtGui.QStandardItemModel.
     update_coupled_parameters : func, optional
         An optional function that is called every time the data in the model is
         updated. It must have the structure:
@@ -344,7 +344,7 @@ class MTableInterfaceWidget(QWidget):
     name : string
         The name of the widget, stored on self._name
     *args/**kwargs : various
-        args and kwargs to be passed to ``PyQt5.QtWidgets.QWidget``.
+        args and kwargs to be passed to ``qtpy.QtWidgets.QWidget``.
     prefix_editor_map : OrderedDict, optional
         An OrderedDict that maps parameter names to editor widgets, for
         parameters that are to be displayed above the table.
