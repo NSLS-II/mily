@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.parametrize("widget", [
     "MTableItemDelegate", "MTableInterfaceView", "MTableInterfaceWidget",
     "MFunctionTableInterfaceWidget",
