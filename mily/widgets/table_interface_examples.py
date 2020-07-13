@@ -1,6 +1,6 @@
-from .table_interface import MFunctionTableInterfaceWidget
+from mily.widgets.table_interface import MFunctionTableInterfaceWidget
 from functools import partial
-from .widgets import MText, MComboBox, MISpin, MFSpin
+from mily.widgets import MText, MComboBox, MISpin, MFSpin
 
 
 def mcombobox_factory(name, items, parent, **kwargs):
