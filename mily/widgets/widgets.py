@@ -4,7 +4,7 @@ from pyqtgraph.parametertree import parameterTypes as pTypes
 
 
 def vstacked_label(name, widget):
-    "Add a label above a widget"
+    """Add a label above a widget"""
     vlayout = QtWidgets.QVBoxLayout()
     label = QtWidgets.QLabel(name)
     vlayout.addWidget(label)
@@ -13,7 +13,7 @@ def vstacked_label(name, widget):
 
 
 def hstacked_label(name, widget):
-    "Add a label to the left of widget"
+    """Add a label to the left of widget"""
     layout = QtWidgets.QHBoxLayout()
     label = QtWidgets.QLabel(name)
     layout.addWidget(label)
@@ -61,7 +61,7 @@ class MFSpin(QtWidgets.QDoubleSpinBox):
 
 
 class MComboBox(QtWidgets.QComboBox):
-    '''A ``PyQt5.QtWidgets.QComboBox`` that matches the ``mily`` syntax.
+    """A ``qtpy.QtWidgets.QComboBox`` that matches the ``mily`` syntax.
 
     This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
     that are common for all ``mily`` widgets to make the consumer code easier.
@@ -70,13 +70,13 @@ class MComboBox(QtWidgets.QComboBox):
     Parameters
     ----------
     args : various
-        args passed to ``PyQt5.QtWidgets.QComboBox.__init__(...)``.
+        args passed to ``qtpy.QtWidgets.QComboBox.__init__(...)``.
     items : dict, optional
         optional dict mapping a 'display name' to items to include in the
         dropdown list.
     kwargs : various
-        kwargs passed to ``pyQt5.QtWidgets.QComboBox.__init__(...)``.
-    '''
+        kwargs passed to ``qtpy.QtWidgets.QComboBox.__init__(...)``.
+    """
 
     def __init__(self, name, items={}, **kwargs):
         super().__init__(**kwargs)
@@ -86,18 +86,18 @@ class MComboBox(QtWidgets.QComboBox):
             self.setItemData(i, val)
 
     def get_parameters(self):
-        '''Returns a ``{name: currentData}`` dictionary. '''
+        """Returns a ``{name: currentData}`` dictionary. """
         return {self._name: self.currentData()}
 
     def set_default(self, currentData):
-        '''Sets ``self.currentData`` to ``currentData``.'''
+        """Sets ``self.currentData`` to ``currentData``."""
         if currentData is not None:
             index = self.findData(currentData)
             self.setCurrentIndex(index)
 
 
 class MCheckBox(QtWidgets.QCheckBox):
-    '''A ``PyQt5.QtWidgets.QCheckBox`` that matches the ``mily`` syntax.
+    """A ``qtpy.QtWidgets.QCheckBox`` that matches the ``mily`` syntax.
 
     This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
     that are common for all ``mily`` widgets to make the consumer code easier.
@@ -106,27 +106,27 @@ class MCheckBox(QtWidgets.QCheckBox):
     Parameters
     ----------
     args : various
-        args passed to ``PyQt5.QtWidgets.QCheckBox.__init__(...)``.
+        args passed to ``qtpy.QtWidgets.QCheckBox.__init__(...)``.
     kwargs : various
-        kwargs passed to ``PyQt5.QtWidgets.QCheckBox.__init__(...)``.
-    '''
+        kwargs passed to ``qtpy.QtWidgets.QCheckBox.__init__(...)``.
+    """
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
         self._name = name
 
     def get_parameters(self):
-        '''Returns a ``{name: isChecked}`` dictionary.'''
+        """Returns a ``{name: isChecked}`` dictionary."""
         return {self._name: self.isChecked()}
 
     def set_default(self, checkState):
-        '''Sets ``self.isChecked`` to ``checkState``.'''
+        """Sets ``self.isChecked`` to ``checkState``."""
         if checkState is not None:
             self.setChecked(checkState)
 
 
 class MSelector(QtWidgets.QGroupBox):
-    '''A widget that displays a list of objects with 'checkboxes'.
+    """A widget that displays a list of objects with 'checkboxes'.
 
     This adds ``get_parameters(self)`` and ``set_default(self, v)`` methods
     that are common for all ``mily`` widgets to make the consumer code easier.
@@ -144,8 +144,8 @@ class MSelector(QtWidgets.QGroupBox):
         optional boolean that indicates if the list should be displayed
         vertically (True) or horizontally (False). default is True.
     kwargs : various
-        kwargs passed to ``PyQt5.QtWidgets.QGroupBox.__init__(...)``.
-    '''
+        kwargs passed to ``qtpy.QtWidgets.QGroupBox.__init__(...)``.
+    """
 
     def __init__(self, name, option_list, vertical=True, **kwargs):
         self._name = name

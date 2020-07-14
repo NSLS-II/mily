@@ -8,6 +8,8 @@ mily
 .. image:: https://img.shields.io/pypi/v/mily.svg
         :target: https://pypi.python.org/pypi/mily
 
+.. image:: https://img.shields.io/codecov/c/github/NSLS-II/mily
+        :target: https://codecov.io/gh/NSLS-II/mily
 
 A collection of Qt building blocks for scientific GUIs.
 

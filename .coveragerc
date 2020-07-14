@@ -1,0 +1,14 @@
+[run]
+source =
+    mily
+[report]
+omit =
+    */tests/*
+    .docs/*
+    */python?.?/*
+    # ignore _version.py and versioneer.py
+    .*version.*
+    *_version.py
+
+exclude_lines =
+    if __name__ == '__main__':

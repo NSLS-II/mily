@@ -3,8 +3,10 @@ Various Qt Utilities
 """
 import io
 import traceback
-
 from qtpy.QtWidgets import QWidget, QMessageBox
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def clear_layout(layout):

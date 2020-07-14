@@ -1,13 +1,27 @@
 import time
-from functools import partial, wraps
+from functools import wraps
 import logging
-from qtpy.QtCore import *
-from qtpy.QtWidgets import *
+from qtpy.QtCore import Signal, QThread, QEvent, QCoreApplication, QObject
+from qtpy.QtWidgets import QApplication
 
-log = lambda message, level: logging.log(level, message)
-log_error = lambda *_: None  # callback for unhandled exceptions in threads
-show_busy = lambda *_: None  # callback to indicate busy
-show_ready = lambda *_: None  # callback to indicate ready
+
+def log(message, level):
+    logging.log(level, message)
+
+
+def log_error(*_):
+    """Callback for unhandled exceptions in threads"""
+    return None
+
+
+def show_busy(*_):
+    """Callback to indicate busy"""
+    return None
+
+
+def show_ready(*_):
+    """Callback to indicate ready"""
+    return None
 
 
 class ThreadManager(QObject):
@@ -49,8 +63,10 @@ class QThreadFuture(QThread):
     sigFinished = Signal()
     sigExcept = Signal(Exception)
 
-    def __init__(self, method, *args, callback_slot=None, finished_slot=None, except_slot=None, default_exhandle=True,
-                 lock=None, threadkey: str = None, showBusy=True, keepalive=True, priority=QThread.InheritPriority,
+    def __init__(self, method, *args, callback_slot=None, finished_slot=None,
+                 except_slot=None, default_exhandle=True, lock=None,
+                 threadkey: str = None, showBusy=True, keepalive=True,
+                 priority=QThread.InheritPriority,
                  **kwargs):
         super(QThreadFuture, self).__init__()
 
@@ -63,8 +79,10 @@ class QThreadFuture(QThread):
 
         self.callback_slot = callback_slot
         # if callback_slot: self.sigCallback.connect(callback_slot)
-        if finished_slot: self.sigFinished.connect(finished_slot)
-        if except_slot: self.sigExcept.connect(except_slot)
+        if finished_slot:
+            self.sigFinished.connect(finished_slot)
+        if except_slot:
+            self.sigExcept.connect(except_slot)
         QApplication.instance().aboutToQuit.connect(self.quit)
         self.method = method
         self.args = args
@@ -98,11 +116,14 @@ class QThreadFuture(QThread):
         self.running = True
         self.done = False
         self.exception = None
-        if self.showBusy: invoke_in_main_thread(show_busy)
+        if self.showBusy:
+            invoke_in_main_thread(show_busy)
         try:
             for self._result in self._run(*args, **kwargs):
-                if not isinstance(self._result, tuple): self._result = (self._result,)
-                if self.callback_slot: invoke_in_main_thread(self.callback_slot, *self._result)
+                if not isinstance(self._result, tuple):
+                    self._result = (self._result,)
+                if self.callback_slot:
+                    invoke_in_main_thread(self.callback_slot, *self._result)
                 self.running = False
 
         except Exception as ex:
@@ -125,7 +146,8 @@ class QThreadFuture(QThread):
     def result(self):
         while not self.done and not self.exception:
             time.sleep(.1)
-        if self.exception: return self.exception
+        if self.exception:
+            return self.exception
         return self._result
 
     def cancel(self):
