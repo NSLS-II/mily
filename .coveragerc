@@ -4,6 +4,7 @@ source =
 [report]
 omit =
     */tests/*
+    */_tests/*
     .docs/*
     */python?.?/*
     # ignore _version.py and versioneer.py
